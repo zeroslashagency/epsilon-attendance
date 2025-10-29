@@ -171,8 +171,8 @@ export function useAttendanceData({
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification('New Attendance Data', {
             body: `${newRecordsCount} new attendance record${newRecordsCount > 1 ? 's' : ''} added`,
-            icon: '/favicon.ico',
-            badge: '/favicon.ico',
+            icon: '/Epsilologo.svg',
+            badge: '/Epsilologo.svg',
           });
         }
       }

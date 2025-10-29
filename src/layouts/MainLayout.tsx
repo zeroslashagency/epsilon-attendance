@@ -60,7 +60,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       try {
         new Notification('Test Notification', {
           body: 'Notifications are working! You will receive updates when new attendance data arrives.',
-          icon: '/favicon.ico',
+          icon: '/Epsilologo.svg',
         });
       } catch (err) {
         console.error('Error showing notification:', err);
@@ -79,7 +79,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         // Show test notification
         new Notification('Notifications Enabled', {
           body: 'You will now receive updates when new attendance data arrives',
-          icon: '/favicon.ico',
+          icon: '/Epsilologo.svg',
         });
       } else if (permission === 'denied') {
         // Permission denied

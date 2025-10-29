@@ -30,8 +30,8 @@ export function useNotifications() {
     // Show browser notification if permitted
     if ('Notification' in window && permission === 'granted') {
       new Notification(title, {
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
+        icon: '/Epsilologo.svg',
+        badge: '/Epsilologo.svg',
         ...options,
       });
     }
