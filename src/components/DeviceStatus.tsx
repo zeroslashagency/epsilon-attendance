@@ -19,10 +19,10 @@ export const DeviceStatus: React.FC = () => {
 
   const fetchDeviceStatus = async () => {
     try {
-      // Query employee_raw_logs with ALL timestamp fields
+      // Query employee_raw_logs with available timestamp fields
       const { data: logs, error: logsError } = await supabase
         .from('employee_raw_logs')
-        .select('log_date, sync_time, sync_timestamp, created_at')
+        .select('log_date, sync_time, created_at')
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -40,7 +40,6 @@ export const DeviceStatus: React.FC = () => {
         // Try all possible timestamp fields to get the MOST RECENT one
         const timestamps = [
           lastLog.created_at,
-          lastLog.sync_timestamp, 
           lastLog.sync_time,
           lastLog.log_date
         ].filter(Boolean);
@@ -48,7 +47,7 @@ export const DeviceStatus: React.FC = () => {
         console.log('🕐 All timestamps found:', timestamps);
         
         // Use created_at as it's when the record was inserted into Supabase
-        const mostRecentTime = lastLog.created_at || lastLog.sync_timestamp || lastLog.sync_time || lastLog.log_date;
+        const mostRecentTime = lastLog.created_at || lastLog.sync_time || lastLog.log_date;
         const lastSync = new Date(mostRecentTime);
         const now = new Date();
         const diffMs = now.getTime() - lastSync.getTime();

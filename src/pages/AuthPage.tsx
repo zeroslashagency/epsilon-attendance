@@ -22,8 +22,8 @@ export default function AuthPage() {
   const { login, isAuthenticated, resetPassword, updatePassword } = useAuth()
   const navigate = useNavigate()
 
-  // Interactive Logo Particles Component (Embedded for Attendr)
-  function AttendrLogoParticles() {
+  // Interactive Logo Particles Component (Embedded for Epsilon)
+  function EpsilonLogoParticles() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const mousePositionRef = useRef({ x: 0, y: 0 });
     const isTouchingRef = useRef(false);
@@ -82,19 +82,19 @@ export default function AuthPage() {
           logoSize
         );
 
-        // Draw the "Attendr" text below the logo - make it bigger and clearer
+        // Draw the "Epsilon" text below the logo - make it bigger and clearer
         ctx.font = 'bold 64px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'white';
         
-        // Add text stroke for better clarity
-        ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
+        // Use white color with slight glow
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
         ctx.lineWidth = 2;
         
         const textY = centerY + logoSize / 2 + 100; // Position below logo
-        ctx.strokeText('Attendr', centerX, textY); // Draw stroke first
-        ctx.fillText('Attendr', centerX, textY); // Then draw fill
+        ctx.strokeText('Epsilon', centerX, textY); // Draw stroke first
+        ctx.fillText('Epsilon', centerX, textY); // Then draw fill
 
         textImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -269,7 +269,7 @@ export default function AuthPage() {
         <canvas 
           ref={canvasRef} 
           className="w-full h-full absolute top-0 left-0 touch-none"
-          aria-label="Interactive Attendr logo particle effect"
+          aria-label="Interactive Epsilon logo particle effect"
         />
         {/* Grid pattern overlay - bigger dots */}
         <div 
@@ -378,7 +378,7 @@ export default function AuthPage() {
       }}>
         {/* Left Panel - Interactive Logo Particles */}
         <div className="w-2/5 bg-black relative">
-          <AttendrLogoParticles />
+          <EpsilonLogoParticles />
         </div>
 
         {/* Right Panel - Login Form */}

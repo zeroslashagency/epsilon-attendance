@@ -142,7 +142,7 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                         key={index}
                         className="grid grid-cols-4 gap-4 px-4 py-3 bg-card border border-border rounded-lg hover:bg-muted/30 transition-colors duration-150"
                       >
-                        <div className="text-sm font-medium text-gray-700">
+                        <div className="text-sm font-medium text-foreground">
                           {new Date(today).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </div>
                         <div className="flex items-center gap-2">
@@ -150,7 +150,7 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                             "w-2 h-2 rounded-full flex-shrink-0",
                             log.direction === 'in' ? 'bg-green-500' : 'bg-red-500'
                           )} />
-                          <span className="text-sm font-semibold font-mono text-gray-900">{log.time}</span>
+                          <span className="text-sm font-semibold font-mono text-foreground">{log.time}</span>
                         </div>
                         <div className="flex items-center">
                           <Badge 
@@ -165,7 +165,7 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                             {log.direction === 'in' ? '✓ Check In' : '✗ Check Out'}
                           </Badge>
                         </div>
-                        <div className="text-sm text-gray-500 flex items-center gap-1">
+                        <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <ArrowRight className="h-3 w-3" />
                           {getTimeAgo(log.time, today)}
                         </div>
@@ -200,13 +200,13 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
               </div>
 
               {/* Table Header */}
-              <div className="grid grid-cols-4 gap-4 px-4 py-3 bg-gradient-to-r from-green-50/60 to-blue-50/40 rounded-xl text-xs font-bold text-gray-700 border border-green-100/50 shadow-sm">
+              <div className="grid grid-cols-4 gap-4 px-4 py-2.5 bg-muted/50 rounded-lg text-xs font-semibold text-muted-foreground">
                 <div className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-green-600" />
+                  <Calendar className="h-3.5 w-3.5" />
                   Date
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-green-600" />
+                  <Clock className="h-3.5 w-3.5" />
                   Time
                 </div>
                 <div>Status</div>
@@ -219,9 +219,9 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                   {yesterdayData.punchLogs.map((log, index) => (
                     <div 
                       key={index}
-                      className="grid grid-cols-4 gap-4 px-4 py-3.5 bg-gradient-to-r from-white to-gray-50/30 border border-gray-200/60 rounded-xl hover:border-green-400/60 hover:shadow-md hover:from-green-50/20 hover:to-blue-50/20 transition-all duration-200"
+                      className="grid grid-cols-4 gap-4 px-4 py-3 bg-card border border-border rounded-lg hover:bg-muted/30 transition-colors duration-150"
                     >
-                      <div className="text-sm font-medium text-gray-700">
+                      <div className="text-sm font-medium text-foreground">
                         {new Date(yesterdayStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </div>
                       <div className="flex items-center gap-2">
@@ -229,7 +229,7 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                           "w-2 h-2 rounded-full flex-shrink-0",
                           log.direction === 'in' ? 'bg-green-500' : 'bg-red-500'
                         )} />
-                        <span className="text-sm font-semibold font-mono text-gray-900">{log.time}</span>
+                        <span className="text-sm font-semibold font-mono text-foreground">{log.time}</span>
                       </div>
                       <div className="flex items-center">
                         <Badge 
@@ -244,7 +244,7 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                           {log.direction === 'in' ? '✓ Check In' : '✗ Check Out'}
                         </Badge>
                       </div>
-                      <div className="text-sm text-gray-500 flex items-center gap-1">
+                      <div className="text-sm text-muted-foreground flex items-center gap-1">
                         <ArrowRight className="h-3 w-3" />
                         {getTimeAgo(log.time, yesterdayStr)}
                       </div>

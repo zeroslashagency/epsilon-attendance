@@ -25,7 +25,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <ErrorBoundary>
-    <ThemeProvider defaultTheme="dark" storageKey="attendr-ui-theme">
+    <ThemeProvider defaultTheme="light" storageKey="attendr-ui-theme">
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider>
