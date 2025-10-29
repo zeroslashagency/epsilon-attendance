@@ -96,11 +96,11 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
   };
 
   return (
-    <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
-      <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-        <CardTitle className="flex items-center gap-3 text-base font-semibold text-gray-900">
-          <div className="p-2 bg-green-50 rounded-lg border border-green-100">
-            <Clock className="h-4 w-4 text-green-600" />
+    <Card className="border border-border shadow-sm hover:shadow-md transition-shadow duration-200">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="flex items-center gap-3 text-base font-semibold text-foreground">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Clock className="h-4 w-4 text-primary" />
           </div>
           Today's Attendance
         </CardTitle>
@@ -121,13 +121,13 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                 </div>
 
                 {/* Table Header */}
-                <div className="grid grid-cols-4 gap-4 px-4 py-2.5 bg-gray-50 rounded-lg text-xs font-semibold text-gray-600 border border-gray-100">
+                <div className="grid grid-cols-4 gap-4 px-4 py-2.5 bg-muted/50 rounded-lg text-xs font-semibold text-muted-foreground">
                   <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                    <Calendar className="h-3.5 w-3.5" />
                     Date
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-gray-400" />
+                    <Clock className="h-3.5 w-3.5" />
                     Time
                   </div>
                   <div>Status</div>
@@ -140,7 +140,7 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                     {todayData.punchLogs.map((log, index) => (
                       <div 
                         key={index}
-                        className="grid grid-cols-4 gap-4 px-4 py-3 bg-white border border-gray-200 rounded-lg hover:border-green-300 hover:shadow-sm transition-all duration-150"
+                        className="grid grid-cols-4 gap-4 px-4 py-3 bg-card border border-border rounded-lg hover:bg-muted/30 transition-colors duration-150"
                       >
                         <div className="text-sm font-medium text-gray-700">
                           {new Date(today).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -156,10 +156,10 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                           <Badge 
                             variant="outline" 
                             className={cn(
-                              "font-medium text-xs px-2.5 py-0.5",
+                              "font-medium text-xs",
                               log.direction === 'in' 
-                                ? 'bg-green-50 border-green-600 text-green-700' 
-                                : 'bg-red-50 border-red-600 text-red-700'
+                                ? 'bg-green-50 border-green-600 text-green-700 dark:bg-green-950 dark:border-green-700 dark:text-green-400' 
+                                : 'bg-red-50 border-red-600 text-red-700 dark:bg-red-950 dark:border-red-700 dark:text-red-400'
                             )}
                           >
                             {log.direction === 'in' ? '✓ Check In' : '✗ Check Out'}
@@ -200,13 +200,13 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
               </div>
 
               {/* Table Header */}
-              <div className="grid grid-cols-4 gap-4 px-4 py-2.5 bg-gray-50 rounded-lg text-xs font-semibold text-gray-600 border border-gray-100">
+              <div className="grid grid-cols-4 gap-4 px-4 py-3 bg-gradient-to-r from-green-50/60 to-blue-50/40 rounded-xl text-xs font-bold text-gray-700 border border-green-100/50 shadow-sm">
                 <div className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                  <Calendar className="h-3.5 w-3.5 text-green-600" />
                   Date
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-gray-400" />
+                  <Clock className="h-3.5 w-3.5 text-green-600" />
                   Time
                 </div>
                 <div>Status</div>
@@ -219,7 +219,7 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                   {yesterdayData.punchLogs.map((log, index) => (
                     <div 
                       key={index}
-                      className="grid grid-cols-4 gap-4 px-4 py-3 bg-white border border-gray-200 rounded-lg hover:border-green-300 hover:shadow-sm transition-all duration-150"
+                      className="grid grid-cols-4 gap-4 px-4 py-3.5 bg-gradient-to-r from-white to-gray-50/30 border border-gray-200/60 rounded-xl hover:border-green-400/60 hover:shadow-md hover:from-green-50/20 hover:to-blue-50/20 transition-all duration-200"
                     >
                       <div className="text-sm font-medium text-gray-700">
                         {new Date(yesterdayStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -235,10 +235,10 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                         <Badge 
                           variant="outline" 
                           className={cn(
-                            "font-medium text-xs px-2.5 py-0.5",
+                            "font-medium text-xs",
                             log.direction === 'in' 
-                              ? 'bg-green-50 border-green-600 text-green-700' 
-                              : 'bg-red-50 border-red-600 text-red-700'
+                              ? 'bg-green-50 border-green-600 text-green-700 dark:bg-green-950 dark:border-green-700 dark:text-green-400' 
+                              : 'bg-red-50 border-red-600 text-red-700 dark:bg-red-950 dark:border-red-700 dark:text-red-400'
                           )}
                         >
                           {log.direction === 'in' ? '✓ Check In' : '✗ Check Out'}

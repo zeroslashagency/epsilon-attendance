@@ -17,7 +17,7 @@ export function ThemeToggle() {
       className="flex items-center gap-2"
       title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
     >
-      {theme === 'light' ? (
+      {theme === 'dark' ? (
         <>
           <Moon className="h-4 w-4" />
           <span className="hidden sm:inline">Dark</span>

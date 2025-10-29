@@ -19,24 +19,77 @@ export const DeviceStatus: React.FC = () => {
 
   const fetchDeviceStatus = async () => {
     try {
-      // Use the optimized RPC function
-      const { data, error } = await supabase.rpc('get_device_status');
+      // Query employee_raw_logs with ALL timestamp fields
+      const { data: logs, error: logsError } = await supabase
+        .from('employee_raw_logs')
+        .select('log_date, sync_time, sync_timestamp, created_at')
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (error) {
-        console.error('Error fetching device status:', error);
+      if (logsError) {
+        console.error('❌ Error fetching device logs:', logsError);
+        setLoading(false);
         return;
       }
 
-      if (data && !data.error) {
+      console.log('📊 Raw Supabase Data:', logs);
+
+      if (logs && logs.length > 0) {
+        const lastLog = logs[0];
+        
+        // Try all possible timestamp fields to get the MOST RECENT one
+        const timestamps = [
+          lastLog.created_at,
+          lastLog.sync_timestamp, 
+          lastLog.sync_time,
+          lastLog.log_date
+        ].filter(Boolean);
+        
+        console.log('🕐 All timestamps found:', timestamps);
+        
+        // Use created_at as it's when the record was inserted into Supabase
+        const mostRecentTime = lastLog.created_at || lastLog.sync_timestamp || lastLog.sync_time || lastLog.log_date;
+        const lastSync = new Date(mostRecentTime);
+        const now = new Date();
+        const diffMs = now.getTime() - lastSync.getTime();
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        const diffSecs = Math.floor(diffMs / 1000);
+        
+        console.log('📡 Device Status Check:', {
+          mostRecentTime,
+          lastSync: lastSync.toISOString(),
+          now: now.toISOString(),
+          diffSecs: diffSecs + ' seconds',
+          diffMins: diffMins + ' minutes',
+          allFields: lastLog
+        });
+        
+        // Real-time thresholds based on 5-second sync
+        let calculatedStatus: 'online' | 'warning' | 'offline' = 'online';
+        if (diffMins > 5) calculatedStatus = 'offline';  // 5 minutes
+        else if (diffMins > 1) calculatedStatus = 'warning';  // 1 minute
+
         setDeviceStatus({
-          device_id: data.device_id,
-          device_name: data.device_name,
-          status: data.status,
-          last_sync: data.last_sync,
-          last_log_received: data.last_log_received,
-          total_logs_today: data.total_logs_today,
-          error_message: data.error_message,
-          calculated_status: data.calculated_status
+          device_id: 'device-1',
+          device_name: 'Attendance Device',
+          status: 'active',
+          last_sync: lastSync.toISOString(),
+          last_log_received: lastLog.log_date,
+          total_logs_today: 0,
+          error_message: null,
+          calculated_status: calculatedStatus
+        });
+      } else {
+        // No logs found - device is offline
+        setDeviceStatus({
+          device_id: 'device-1',
+          device_name: 'Attendance Device',
+          status: 'unknown',
+          last_sync: new Date().toISOString(),
+          last_log_received: null,
+          total_logs_today: 0,
+          error_message: 'No logs found',
+          calculated_status: 'offline'
         });
       }
     } catch (err) {
@@ -114,6 +167,11 @@ export const DeviceStatus: React.FC = () => {
   };
 
   const getTimeAgo = (date: Date): string => {
+    // Check if date is valid
+    if (!date || isNaN(date.getTime())) {
+      return 'unknown';
+    }
+    
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
