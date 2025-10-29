@@ -38,9 +38,12 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   const handleLogout = async () => {
     try {
+      console.log('🚪 Logout button clicked');
       await logout();
+      console.log('✅ Logout successful, redirecting...');
+      window.location.href = '/auth';
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('❌ Logout error:', error);
     }
   };
   
