@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied Popup Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .demo-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .popup-preview {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 30px;
+            background: white;
+            max-width: 400px;
+            margin: 20px auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .popup-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .popup-icon {
+            width: 64px;
+            height: 64px;
+            background: #fee2e2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .popup-title {
+            color: #dc2626;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .warning-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #d97706;
+            font-weight: 500;
+            margin: 16px 0;
+        }
+        .error-details {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .error-text {
+            color: #b91c1c;
+            font-size: 14px;
+            margin: 0;
+        }
+        .contact-info {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 16px 0;
+        }
+        .contact-text {
+            color: #6b7280;
+            font-size: 12px;
+            margin: 0;
+        }
+        .popup-button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 16px;
+        }
+        .popup-button:hover {
+            background: #b91c1c;
+        }
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        .step-number {
+            background: #007bff;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        .blocked-step {
+            border-left-color: #dc2626;
+        }
+        .blocked-step .step-number {
+            background: #dc2626;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; border-left: 4px solid #28a745; }
+        .error { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+    </style>
+</head>
+<body>
+    <h1>🚫 Access Denied Popup - Visual Demo</h1>
+    
+    <div class="demo-section">
+        <h2>📱 Popup Preview</h2>
+        <p>This is how the popup will look when a user with <code>standalone_attendance = 'NO'</code> tries to login:</p>
+        
+        <div class="popup-preview">
+            <div class="popup-header">
+                <div class="popup-icon">
+                    🔒
+                </div>
+                <h3 class="popup-title">Access Denied</h3>
+            </div>
+            
+            <div class="warning-section">
+                ⚠️ <span>You're not allowed in the attendance section</span>
+            </div>
+            
+            <div class="error-details">
+                <p class="error-text">
+                    Your account <strong>blocked@example.com</strong> does not have permission to access the attendance system.
+                </p>
+            </div>
+            
+            <div class="contact-info">
+                <p class="contact-text">
+                    Contact your administrator to request access to the attendance section.
+                </p>
+            </div>
+            
+            <button class="popup-button">OK, I Understand</button>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🔄 User Flow Diagram</h2>
+        
+        <div class="flow-diagram">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>User enters email and password</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>Supabase authentication succeeds</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>System checks <code>profiles.standalone_attendance</code></div>
+            </div>
+            
+            <div class="step blocked-step">
+                <div class="step-number">❌</div>
+                <div><strong>BLOCKED:</strong> standalone_attendance = 'NO' → Show popup</div>
+            </div>
+            
+            <div class="step blocked-step">
+                <div class="step-number">🚪</div>
+                <div>User clicks "OK" → Forced logout → Redirect to login</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🗄️ Database Configuration</h2>
+        
+        <h3>✅ Allow Access (User can login):</h3>
+        <div class="code-block success">
+UPDATE profiles 
+SET standalone_attendance = 'YES' 
+WHERE email = 'admin@example.com';
+        </div>
+        
+        <h3>❌ Block Access (Show popup):</h3>
+        <div class="code-block error">
+UPDATE profiles 
+SET standalone_attendance = 'NO' 
+WHERE email = 'blocked@example.com';
+        </div>
+        
+        <h3>🔍 Check Current Settings:</h3>
+        <div class="code-block">
+SELECT email, standalone_attendance, employee_code 
+FROM profiles 
+ORDER BY created_at DESC;
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🧪 Test Scenarios</h2>
+        
+        <div class="demo-section success">
+            <h3>✅ Authorized User Experience:</h3>
+            <ol>
+                <li>User has <code>standalone_attendance = 'YES'</code></li>
+                <li>Login succeeds normally</li>
+                <li>Dashboard loads</li>
+                <li>Can view attendance data</li>
+                <li><strong>No popup appears</strong></li>
+            </ol>
+        </div>
+        
+        <div class="demo-section error">
+            <h3>❌ Blocked User Experience:</h3>
+            <ol>
+                <li>User has <code>standalone_attendance = 'NO'</code></li>
+                <li>Initial authentication succeeds</li>
+                <li><strong>🚫 POPUP APPEARS: "You're not allowed in the attendance section"</strong></li>
+                <li>User clicks "OK, I Understand"</li>
+                <li>Automatic logout occurs</li>
+                <li>Redirected back to login page</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>💻 Technical Implementation</h2>
+        
+        <h3>Modal Component Features:</h3>
+        <ul>
+            <li>🔒 <strong>Lock Icon</strong> - Clear visual indicator</li>
+            <li>⚠️ <strong>Warning Message</strong> - "You're not allowed in the attendance section"</li>
+            <li>📧 <strong>User Email Display</strong> - Shows which account is blocked</li>
+            <li>📞 <strong>Contact Info</strong> - Directs user to administrator</li>
+            <li>✅ <strong>Acknowledgment Button</strong> - "OK, I Understand"</li>
+        </ul>
+        
+        <h3>Security Features:</h3>
+        <ul>
+            <li>🚪 <strong>Immediate Logout</strong> - No partial access granted</li>
+            <li>🔄 <strong>Automatic Redirect</strong> - Back to login page</li>
+            <li>📝 <strong>Console Logging</strong> - All attempts logged</li>
+            <li>🛡️ <strong>Database Controlled</strong> - Centralized access management</li>
+        </ul>
+    </div>
+
+    <div class="demo-section warning">
+        <h2>⚡ How to Test</h2>
+        
+        <ol>
+            <li><strong>Block a user:</strong>
+                <div class="code-block">
+UPDATE profiles SET standalone_attendance = 'NO' WHERE email = 'test@example.com';
+                </div>
+            </li>
+            
+            <li><strong>Try to login with that user</strong></li>
+            
+            <li><strong>Expected Result:</strong>
+                <ul>
+                    <li>Login form accepts credentials</li>
+                    <li>🚫 <strong>Popup appears immediately</strong></li>
+                    <li>Message: "You're not allowed in the attendance section"</li>
+                    <li>User gets logged out after clicking OK</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <script>
+        // Add some interactivity to the demo popup
+        document.querySelector('.popup-button').addEventListener('click', function() {
+            alert('In the real app, this would:\n1. Close the popup\n2. Logout the user\n3. Redirect to login page');
+        });
+    </script>
+</body>
+</html>
