@@ -137,7 +137,7 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                 {/* Punch Logs */}
                 {todayData.punchLogs && todayData.punchLogs.length > 0 ? (
                   <div className="space-y-2">
-                    {todayData.punchLogs.map((log, index) => (
+                    {[...todayData.punchLogs].reverse().map((log, index) => (
                       <div 
                         key={index}
                         className="grid grid-cols-4 gap-4 px-4 py-3 bg-card border border-border rounded-lg hover:bg-muted/30 transition-colors duration-150"
@@ -216,7 +216,7 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
               {/* Yesterday's Punch Logs */}
               {yesterdayData.punchLogs && yesterdayData.punchLogs.length > 0 ? (
                 <div className="space-y-2">
-                  {yesterdayData.punchLogs.map((log, index) => (
+                  {[...yesterdayData.punchLogs].reverse().map((log, index) => (
                     <div 
                       key={index}
                       className="grid grid-cols-4 gap-4 px-4 py-3 bg-card border border-border rounded-lg hover:bg-muted/30 transition-colors duration-150"

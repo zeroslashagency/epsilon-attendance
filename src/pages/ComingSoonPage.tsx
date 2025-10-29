@@ -39,15 +39,15 @@ export function ComingSoonPage({ feature }: ComingSoonPageProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-        <Card className="bg-gradient-card border-border">
+        <Card className="bg-card border-border">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-primary flex items-center justify-center">
+            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary flex items-center justify-center">
               <Construction className="h-8 w-8 text-primary-foreground" />
             </div>
-            <CardTitle className="text-2xl font-bold">
+            <CardTitle className="text-2xl font-bold text-foreground">
               {feature} Section
             </CardTitle>
-            <Badge variant="secondary" className="mx-auto mt-2 bg-status-late/20 text-status-late">
+            <Badge variant="secondary" className="mx-auto mt-2 bg-yellow-500/20 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400">
               <Clock className="h-3 w-3 mr-1" />
               Coming Soon
             </Badge>
@@ -60,15 +60,15 @@ export function ComingSoonPage({ feature }: ComingSoonPageProps) {
 
             <div className="grid grid-cols-2 gap-3">
               {features.map((featureItem, index) => (
-                <div key={index} className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
+                <div key={index} className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border">
                   <Zap className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">{featureItem}</span>
+                  <span className="text-sm font-medium text-foreground">{featureItem}</span>
                 </div>
               ))}
             </div>
 
-            <div className="border-t pt-6">
-              <h3 className="font-semibold mb-3">What's Coming:</h3>
+            <div className="border-t border-border pt-6">
+              <h3 className="font-semibold mb-3 text-foreground">What's Coming:</h3>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>• Advanced analytics and reporting</p>
                 <p>• Interactive calendar with detailed views</p>
@@ -93,10 +93,10 @@ export function ComingSoonPage({ feature }: ComingSoonPageProps) {
         </Card>
 
         {/* Additional Info Card */}
-        <Card className="mt-6 bg-background border-border">
+        <Card className="mt-6 bg-card border-border">
           <CardContent className="p-6">
             <div className="text-center space-y-4">
-              <h3 className="font-semibold">Currently Available</h3>
+              <h3 className="font-semibold text-foreground">Currently Available</h3>
               <div className="flex justify-center gap-4">
                 <Link to="/">
                   <Badge className="bg-status-present text-white hover:bg-status-present/90 cursor-pointer">

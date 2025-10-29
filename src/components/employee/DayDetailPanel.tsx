@@ -130,20 +130,20 @@ export function DayDetailPanel({
           )}
 
           {/* Work Summary */}
-          <Card className="bg-gradient-card border-border">
+          <Card className="bg-card border-border">
             <CardContent className="p-4 space-y-3">
-              <h3 className="font-semibold flex items-center gap-2">
+              <h3 className="font-semibold flex items-center gap-2 text-foreground">
                 <Clock className="h-4 w-4" />
                 Work Summary
               </h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Total Work Time</p>
-                  <p className="font-semibold text-lg">{data.totalWorkTime}</p>
+                  <p className="font-semibold text-lg text-foreground">{data.totalWorkTime}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Intervals</p>
-                  <p className="font-semibold text-lg">{data?.intervals?.length || 0}</p>
+                  <p className="font-semibold text-lg text-foreground">{data?.intervals?.length || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -151,23 +151,23 @@ export function DayDetailPanel({
 
           {/* Work Intervals */}
           <div className="space-y-3">
-            <h3 className="font-semibold">Work Intervals</h3>
+            <h3 className="font-semibold text-foreground">Work Intervals</h3>
             {data?.intervals?.length > 0 ? data.intervals.map((interval, index) => (
-              <Card key={index} className="bg-gradient-accent border-border">
+              <Card key={index} className="bg-card border-border">
                 <CardContent className="p-3">
                   <div className="flex justify-between items-center">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm">
-                        <span className="font-medium">{interval.checkIn}</span>
+                        <span className="font-medium text-foreground">{interval.checkIn}</span>
                         <span className="text-muted-foreground">→</span>
-                        <span className="font-medium">{interval.checkOut}</span>
+                        <span className="font-medium text-foreground">{interval.checkOut}</span>
                       </div>
                       <Badge variant="outline">
                         {interval.type}
                       </Badge>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">{interval.duration}</p>
+                      <p className="font-semibold text-foreground">{interval.duration}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -183,10 +183,10 @@ export function DayDetailPanel({
 
           {/* Raw Punch Logs */}
           <div className="space-y-3">
-            <h3 className="font-semibold">Punch Events</h3>
+            <h3 className="font-semibold text-foreground">Punch Events</h3>
             <div className="space-y-2">
               {data?.punchLogs?.length > 0 ? data.punchLogs.map((log, index) => (
-                <Card key={index} className="bg-gradient-accent border-border">
+                <Card key={index} className="bg-card border-border">
                   <CardContent className="p-3">
                     <div className="flex justify-between items-center">
                       <div className="space-y-1">
@@ -194,7 +194,7 @@ export function DayDetailPanel({
                           <Badge variant={log.direction === 'in' ? 'default' : 'secondary'}>
                             {log.direction.toUpperCase()}
                           </Badge>
-                          <span className="font-medium">{log.time}</span>
+                          <span className="font-medium text-foreground">{log.time}</span>
                           {log.inferred && (
                             <Badge variant="outline" className="text-yellow-500 border-yellow-500">
                               inferred
@@ -223,9 +223,9 @@ export function DayDetailPanel({
           </div>
 
           {/* Audit Info */}
-          <Card className="bg-gradient-accent border-border">
+          <Card className="bg-card border-border">
             <CardContent className="p-4 space-y-2">
-              <h3 className="font-semibold text-sm">Audit Information</h3>
+              <h3 className="font-semibold text-sm text-foreground">Audit Information</h3>
               <div className="space-y-1 text-xs text-muted-foreground">
                 <p>Imported: {new Date(data.importedAt).toLocaleString()}</p>
                 {data.isConfirmed && (

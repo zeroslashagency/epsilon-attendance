@@ -42,7 +42,7 @@ function StatCard({ title, value, subtitle, trend, icon, onClick, status }: Stat
   return (
     <Card 
       className={cn(
-        "bg-gradient-card border-border transition-all hover:scale-[1.02] cursor-pointer h-full flex flex-col",
+        "bg-card border-border transition-all hover:scale-[1.02] cursor-pointer h-full flex flex-col",
         status && statusColors[status]
       )}
       onClick={onClick}
@@ -57,7 +57,7 @@ function StatCard({ title, value, subtitle, trend, icon, onClick, status }: Stat
         </div>
       </CardHeader>
       <CardContent className="pb-4 flex-1">
-        <div className="text-2xl font-bold mb-1">{value}</div>
+        <div className="text-2xl font-bold mb-1 text-foreground">{value}</div>
         {subtitle && (
           <p className="text-xs text-muted-foreground mb-2 leading-tight">
             {subtitle}
