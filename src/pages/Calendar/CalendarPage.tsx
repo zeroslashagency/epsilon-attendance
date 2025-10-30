@@ -70,9 +70,9 @@ const CalendarPage = () => {
     totalWorkTime: selectedDay.data.totalHours || "0:00",
     confidence: selectedDay.data.confidence,
     hasAmbiguousPunches: selectedDay.data.hasAmbiguousPunches,
-    isConfirmed: false, // Would come from backend
-    importedAt: new Date().toISOString(), // Mock data
-    corrections: undefined // Would come from backend
+    isConfirmed: false,
+    importedAt: new Date().toISOString(),
+    corrections: undefined
   } : null;
 
   if (isLoading) {

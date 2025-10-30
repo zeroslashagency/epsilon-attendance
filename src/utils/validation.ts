@@ -5,7 +5,7 @@ import { z } from 'zod';
 export const employeeCodeSchema = z.string()
   .min(1, 'Employee code is required')
   .max(50, 'Employee code must be less than 50 characters')
-  .regex(/^[a-zA-Z0-9_-]+$/, 'Employee code can only contain letters, numbers, hyphens, and underscores');
+  .regex(/^[a-zA-Z0-9_\- ]+$/, 'Employee code can only contain letters, numbers, spaces, hyphens, and underscores');
 
 // Date validation (YYYY-MM-DD format)
 export const dateSchema = z.string()
@@ -132,7 +132,9 @@ export function validateInput<T>(schema: z.ZodSchema<T>, input: unknown): {
 
 // Sanitization helpers
 export function sanitizeEmployeeCode(code: string): string {
-  return code.trim().toLowerCase();
+  // Keep original case for employee codes (e.g., EE65, emp001)
+  // Only trim whitespace, don't convert to lowercase
+  return code.trim();
 }
 
 export function sanitizeEmail(email: string): string {

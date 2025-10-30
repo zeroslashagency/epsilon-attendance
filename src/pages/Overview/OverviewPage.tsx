@@ -1,21 +1,16 @@
-// Overview Page - Updated 2025-10-11 03:27 - Fixed generateMockYearData error
+// Overview Page - Real-time attendance overview with statistics
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { OverviewHeader } from "@/components/Overview/OverviewHeader";
 import { OverviewStats } from "@/components/Overview/OverviewStats";
-import { LeaveBalanceCard } from "@/components/Overview/LeaveBalanceCard";
+// LeaveBalanceCard removed - will be added when backend is ready
 import { DayDetailPanel } from "@/components/employee/DayDetailPanel";
 import { useAttendanceData } from "@/hooks/useAttendanceData";
 import { useAuth } from "@/hooks/useAuth";
 import { ProcessedDayData } from "@/types/attendance";
 
-// Mock data for leave balance (temporary until backend is ready)
-const mockLeaveBalance = {
-  casual: { used: 0, total: 12, available: 12 },
-  sick: { used: 0, total: 10, available: 10 },
-  earned: { used: 0, total: 15, available: 15 },
-  vacation: { used: 0, total: 20, available: 20 }
-};
+// Leave balance will be fetched from backend when available
+// For now, this feature is disabled
 
 // Calculate attendance statistics
 const calculateAttendanceStats = (data: Record<string, ProcessedDayData>) => {
@@ -48,7 +43,6 @@ const calculateAttendanceStats = (data: Record<string, ProcessedDayData>) => {
 };
 
 const OverviewPage = () => {
-  // Fixed: Removed generateMockYearData reference - using real data now
   const {
     employeeCode,
     employeeName,
@@ -221,9 +215,7 @@ const OverviewPage = () => {
             onStatClick={handleStatClick}
           />
         </div>
-        <div>
-          <LeaveBalanceCard leaveBalance={mockLeaveBalance} />
-        </div>
+        {/* Leave Balance Card removed - will be added when backend is ready */}
       </div>
 
       {/* Day Detail Panel */}

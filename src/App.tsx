@@ -75,9 +75,7 @@ const App = () => (
               <Route path="/call-history" element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <PageErrorBoundary>
-                      <CallHistoryPage />
-                    </PageErrorBoundary>
+                    <ComingSoonPage feature="Call History" />
                   </MainLayout>
                 </ProtectedRoute>
               } />
