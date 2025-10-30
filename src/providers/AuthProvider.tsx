@@ -131,8 +131,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      // Clear local state first
+      setEmployeeCode('1');
+      setEmployeeName('');
+      setRole('employee');
+      setIsStandalone(false);
+      setStandaloneEmployeeCode('');
+      setStandaloneEmployeeName('');
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Supabase signOut error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Logout completed successfully');
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+      throw error;
+    }
   };
 
   const resetPassword = async (email: string) => {

@@ -51,11 +51,21 @@ export function MainLayout({ children }: MainLayoutProps) {
   const handleLogout = async () => {
     try {
       console.log('🚪 Logout button clicked');
+      
+      // Show loading toast
+      const toastId = toast.loading('Logging out...');
+      
       await logout();
       console.log('✅ Logout successful, redirecting...');
-      window.location.href = '/auth';
+      
+      // Dismiss loading toast
+      toast.dismiss(toastId);
+      
+      // Use navigate instead of window.location for proper routing
+      window.location.replace('/auth');
     } catch (error) {
       console.error('❌ Logout error:', error);
+      toast.error('Logout failed. Please try again.');
     }
   };
   
