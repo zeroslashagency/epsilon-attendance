@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, RefreshCw, Clock, Wifi, WifiOff } from "lucide-react";
+import { RefreshCw, Clock, Wifi, WifiOff } from "lucide-react";
 import { Employee } from "@/types/attendance";
 
 interface AttendanceHeaderProps {
@@ -8,7 +8,7 @@ interface AttendanceHeaderProps {
   lastUpdate: Date;
   isLoading: boolean;
   onRefresh: () => void;
-  onExport: () => void;
+  onExport?: () => void; // Optional, not used
 }
 
 export function AttendanceHeader({ 
@@ -50,15 +50,6 @@ export function AttendanceHeader({
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>
-            </Button>
-            
-            <Button 
-              onClick={onExport} 
-              variant="default"
-              className="gap-2 bg-primary hover:bg-primary/90 shadow-md"
-            >
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Export Data</span>
             </Button>
           </div>
         </div>

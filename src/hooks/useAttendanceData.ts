@@ -122,7 +122,8 @@ export function useAttendanceData({
 
       const today = new Date();
       const endDate = today.toISOString().split('T')[0];
-      const startDate = new Date(today.setDate(today.getDate() - 30)).toISOString().split('T')[0];
+      // Fetch 3 months of data (90 days)
+      const startDate = new Date(today.setDate(today.getDate() - 90)).toISOString().split('T')[0];
 
       // Validate RPC parameters
       const rpcParams = {

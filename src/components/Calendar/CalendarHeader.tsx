@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Employee } from "@/types/attendance";
 
 interface CalendarHeaderProps {
@@ -9,11 +9,6 @@ interface CalendarHeaderProps {
 }
 
 export function CalendarHeader({ employee, selectedYear, onYearChange }: CalendarHeaderProps) {
-  const handleExport = () => {
-    // Export functionality will be implemented separately
-    console.log("Export calendar data");
-  };
-
   return (
     <div className="bg-white border-b border-gray-200">
       <div className="container mx-auto p-4 sm:p-6">
@@ -27,10 +22,6 @@ export function CalendarHeader({ employee, selectedYear, onYearChange }: Calenda
               <p className="text-gray-600">{employee.role} • {employee.employeeCode}</p>
             </div>
           </div>
-          <Button onClick={handleExport} variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Export Calendar
-          </Button>
         </div>
 
         {/* Year Navigation */}
