@@ -1,10 +1,8 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Award, 
   TrendingUp, 
-  Clock, 
-  Download 
+  Clock
 } from "lucide-react";
 import { Employee, AttendanceStats, ProcessedDayData } from "@/types/attendance";
 import { useMemo } from "react";
@@ -12,11 +10,11 @@ import { useMemo } from "react";
 interface OverviewHeaderProps {
   employee: Employee;
   stats: AttendanceStats;
-  onExport: () => void;
+  onExport?: () => void; // Optional, not used
   attendanceData?: Record<string, ProcessedDayData>;
 }
 
-export function OverviewHeader({ employee, stats, onExport, attendanceData = {} }: OverviewHeaderProps) {
+export function OverviewHeader({ employee, stats, attendanceData = {} }: OverviewHeaderProps) {
   const attendanceRate = stats.workingDays > 0 ? Math.round((stats.totalAttendance / stats.workingDays) * 100) : 0;
   
   // Get start and end dates for activity chart
@@ -100,10 +98,6 @@ export function OverviewHeader({ employee, stats, onExport, attendanceData = {} 
               <p className="text-gray-600">{employee.role} • {employee.employeeCode}</p>
             </div>
           </div>
-          <Button onClick={onExport} variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Export Excel
-          </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
@@ -140,23 +134,25 @@ export function OverviewHeader({ employee, stats, onExport, attendanceData = {} 
               <TrendingUp className="h-5 w-5" />
               Activity
             </h2>
-            <div className="flex items-end gap-1 h-24">
+            <div className="flex items-end gap-1 h-24 bg-gray-50 rounded-lg p-2">
               {activityData.map((height, i) => {
                 const day = i + 1;
-                const displayHeight = height > 0 ? Math.max(height * 0.8, 10) : 5;
+                // Make bars more visible - scale up the height
+                const displayHeight = height > 0 ? Math.max(height, 20) : 8;
                 return (
-                  <div key={i} className="flex-1 bg-gray-100 rounded-t relative group cursor-pointer" title={`Day ${day}: ${height}%`}>
+                  <div key={i} className="flex-1 flex items-end" style={{ height: '100%' }}>
                     <div 
-                      className={`rounded-t transition-all duration-300 group-hover:opacity-80 ${
+                      className={`w-full rounded-t transition-all duration-300 hover:opacity-80 ${
                         height === 100 ? 'bg-green-600' : 
                         height === 80 ? 'bg-yellow-500' : 
-                        height === 0 ? 'bg-red-600' : 
+                        height === 0 ? 'bg-gray-300' : 
                         'bg-green-500'
                       }`}
                       style={{ 
                         height: `${displayHeight}%`,
-                        minHeight: '4px'
+                        minHeight: '8px'
                       }}
+                      title={`Day ${day}: ${height === 100 ? 'Present' : height === 80 ? 'Late' : height === 0 ? 'Absent' : 'Partial'}`}
                     ></div>
                   </div>
                 );
