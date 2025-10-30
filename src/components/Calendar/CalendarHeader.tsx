@@ -10,7 +10,7 @@ interface CalendarHeaderProps {
 
 export function CalendarHeader({ employee, selectedYear, onYearChange }: CalendarHeaderProps) {
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="bg-card border-b border-border">
       <div className="container mx-auto p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div className="flex items-center gap-4">
@@ -18,8 +18,8 @@ export function CalendarHeader({ employee, selectedYear, onYearChange }: Calenda
               {employee.name.split(' ').map(n => n[0]).join('')}
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">{employee.name}</h1>
-              <p className="text-gray-600">{employee.role} • {employee.employeeCode}</p>
+              <h1 className="text-xl font-bold text-foreground">{employee.name}</h1>
+              <p className="text-muted-foreground">{employee.role} • {employee.employeeCode}</p>
             </div>
           </div>
         </div>
@@ -36,9 +36,9 @@ export function CalendarHeader({ employee, selectedYear, onYearChange }: Calenda
             Previous Year
           </Button>
           
-          <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200">
-            <Calendar className="h-5 w-5 text-gray-600" />
-            <span className="text-lg font-semibold text-gray-900">{selectedYear}</span>
+          <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-border">
+            <Calendar className="h-5 w-5 text-muted-foreground" />
+            <span className="text-lg font-semibold text-foreground">{selectedYear}</span>
           </div>
           
           <Button

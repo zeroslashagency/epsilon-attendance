@@ -67,9 +67,9 @@ export function AttendanceCalendar({ year, data, onDayClick }: AttendanceCalenda
   };
 
   return (
-    <Card className="bg-gradient-card border-border">
+    <Card className="bg-card border-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-foreground">
           <Calendar className="h-5 w-5" />
           Attendance Portfolio
         </CardTitle>
@@ -174,8 +174,8 @@ export function AttendanceCalendar({ year, data, onDayClick }: AttendanceCalenda
                             key={dayNumber}
                             onClick={() => onDayClick(dateKey, dayData)}
                             className={cn(
-                              "bg-background h-12 flex items-center justify-center text-sm cursor-pointer transition-all hover:scale-105",
-                              "hover:bg-accent",
+                              "bg-card h-12 flex items-center justify-center text-sm cursor-pointer transition-all hover:scale-105",
+                              "hover:bg-accent text-foreground",
                               isToday && "ring-2 ring-primary ring-inset",
                               dayData?.hasAmbiguousPunches && "ring-2 ring-yellow-500 ring-inset",
                               dayData && statusColors[dayData.status],
