@@ -25,6 +25,7 @@ interface UseAttendanceDataReturn {
   error: string | null;
   lastUpdate: Date;
   refresh: () => Promise<void>;
+  silentRefresh: () => Promise<void>;
 }
 
 export function useAttendanceData({
@@ -95,8 +96,16 @@ export function useAttendanceData({
     }
   }, [employeeCode]);
 
-  // Main data fetching function with RPC
-  const fetchAttendanceData = useCallback(async (isBackgroundUpdate = false) => {
+  // Main fetch function with better error handling
+  const fetchAttendanceData = useCallback(async (isBackgroundUpdate = false, isSilent = false) => {
+    if (!employeeCode) {
+      console.error('❌ No employee code provided');
+      setError('No employee code provided');
+      setAttendanceData({});
+      setIsLoading(false);
+      return;
+    }
+    
     console.log('🚀 fetchAttendanceData called with employeeCode:', employeeCode);
     
     // Validate employee code
@@ -112,11 +121,15 @@ export function useAttendanceData({
     }
 
     try {
-      // Only show main loading on initial load, not background updates
-      if (!isBackgroundUpdate) {
-        setIsLoading(true);
-      } else {
-        setIsBackgroundRefreshing(true);
+      // Silent refresh: no loading indicators at all
+      // Background refresh: show background indicator
+      // Normal refresh: show main loading
+      if (!isSilent) {
+        if (!isBackgroundUpdate) {
+          setIsLoading(true);
+        } else {
+          setIsBackgroundRefreshing(true);
+        }
       }
       setError(null);
 
@@ -186,8 +199,11 @@ export function useAttendanceData({
       // Fall back to original logic
       await fetchAttendanceDataFallback();
     } finally {
-      setIsLoading(false);
-      setIsBackgroundRefreshing(false);
+      // Only clear loading states if not silent refresh
+      if (!isSilent) {
+        setIsLoading(false);
+        setIsBackgroundRefreshing(false);
+      }
     }
     // Note: isLoading is intentionally not in deps - it's state modified by this function
     // Adding it would cause infinite re-renders. This is a safe React pattern.
@@ -261,7 +277,8 @@ export function useAttendanceData({
     isBackgroundRefreshing,
     error,
     lastUpdate,
-    refresh
+    refresh: () => fetchAttendanceData(false),
+    silentRefresh: () => fetchAttendanceData(false, true)
   };
 }
 

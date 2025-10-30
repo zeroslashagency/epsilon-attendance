@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { AttendanceHeader } from "@/components/Attendance/AttendanceHeader";
 import { CurrentAttendanceCard } from "@/components/Attendance/CurrentAttendanceCard";
@@ -47,7 +47,8 @@ const AttendancePage = () => {
     isBackgroundRefreshing,
     error,
     lastUpdate,
-    refresh
+    refresh,
+    silentRefresh
   } = useAttendanceData({
     employeeCode: activeEmployeeCode,
     enableRealTime: true,
@@ -87,6 +88,15 @@ const AttendancePage = () => {
   const handleRequestCorrection = () => {
     toast.info("Correction request form would open here");
   };
+
+  // Silent refresh for Today's Attendance every 5 seconds
+  useEffect(() => {
+    const silentRefreshInterval = setInterval(() => {
+      silentRefresh();
+    }, 5000); // 5 seconds
+
+    return () => clearInterval(silentRefreshInterval);
+  }, [silentRefresh]);
 
   // Convert ProcessedDayData to the format expected by DayDetailPanel
   const selectedDayDetail = selectedDay ? {

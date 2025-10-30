@@ -21,6 +21,9 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
   const yesterdayStr = yesterday.toISOString().split('T')[0];
   const yesterdayData = attendanceData[yesterdayStr];
 
+  // Only show loading skeleton on initial load (when there's no data yet)
+  const showSkeleton = isLoading && !todayData && !yesterdayData;
+
   // Calculate time ago from punch time
   const getTimeAgo = (punchTime: string, punchDate: string) => {
     const now = new Date();
@@ -36,16 +39,16 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
     return `${diffDays}d ago`;
   };
 
-  if (isLoading) {
+  if (showSkeleton) {
     return (
-      <Card className="bg-background border-border">
+      <Card className="bg-card border-border transition-all duration-300">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <Clock className="h-5 w-5" />
             Today's Attendance
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6 transition-all duration-300">
           <div className="space-y-4">
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-4 w-3/4" />
