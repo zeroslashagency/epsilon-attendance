@@ -86,7 +86,7 @@ export function OverviewHeader({ employee, stats, attendanceData = {} }: Overvie
     : 0;
 
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="bg-card border-b border-border">
       <div className="container mx-auto p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-4">
@@ -94,43 +94,43 @@ export function OverviewHeader({ employee, stats, attendanceData = {} }: Overvie
               {employee.name.split(' ').map(n => n[0]).join('')}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{employee.name}</h1>
-              <p className="text-gray-600">{employee.role} • {employee.employeeCode}</p>
+              <h1 className="text-2xl font-bold text-foreground">{employee.name}</h1>
+              <p className="text-muted-foreground">{employee.role} • {employee.employeeCode}</p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
           {/* Achievements */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Award className="h-5 w-5" />
               Achievements
             </h2>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">{stats.workingDays}</div>
-                <div className="text-xs text-gray-600">Total Days</div>
+                <div className="text-xs text-muted-foreground">Total Days</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-yellow-600">{attendanceRate}%</div>
-                <div className="text-xs text-gray-600">Attendance Rate</div>
+                <div className="text-xs text-muted-foreground">Attendance Rate</div>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">On Time</span>
-                <span className="text-sm font-medium text-gray-900">{stats.totalAttendance - stats.lateDays}</span>
+                <span className="text-sm text-muted-foreground">On Time</span>
+                <span className="text-sm font-medium text-foreground">{stats.totalAttendance - stats.lateDays}</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-muted rounded-full h-2">
                 <div className="bg-green-600 h-2 rounded-full" style={{ width: `${onTimePercentage}%` }}></div>
               </div>
             </div>
           </div>
 
           {/* Activity Chart */}
-          <div className="sm:col-span-2 lg:col-span-1 xl:col-span-2 space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <div className="md:col-span-2 xl:col-span-1 space-y-4">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
               Activity
             </h2>
@@ -158,30 +158,36 @@ export function OverviewHeader({ employee, stats, attendanceData = {} }: Overvie
                 );
               })}
             </div>
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-xs text-muted-foreground">
               <span>{activityDateRange.start}</span>
               <span>{activityDateRange.end}</span>
             </div>
           </div>
 
-          {/* Quick Stats */}
+          {/* This Month Stats */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Clock className="h-5 w-5" />
               This Month
             </h2>
             <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Present</span>
-                <Badge variant="secondary" className="bg-green-50 text-green-700 border border-green-200">{thisMonthStats.presentDays} days</Badge>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Present</span>
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800">
+                  {thisMonthStats.presentDays} days
+                </Badge>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Late</span>
-                <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border border-yellow-200">{thisMonthStats.lateDays} days</Badge>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Late</span>
+                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-800">
+                  {thisMonthStats.lateDays} days
+                </Badge>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Leave</span>
-                <Badge variant="secondary" className="bg-orange-50 text-orange-700 border border-orange-200">{thisMonthStats.leaveDays} days</Badge>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Leave</span>
+                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800">
+                  {thisMonthStats.leaveDays} days
+                </Badge>
               </div>
             </div>
           </div>

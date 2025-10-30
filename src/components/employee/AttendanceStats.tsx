@@ -106,7 +106,7 @@ export function AttendanceStats({ stats, onStatClick }: AttendanceStatsProps) {
   const attendanceRate = Math.round((stats.totalAttendance / stats.workingDays) * 100);
   
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3 md:gap-4 items-stretch">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-stretch">
       <StatCard
         title="Total Attendance"
         value={stats.totalAttendance}
