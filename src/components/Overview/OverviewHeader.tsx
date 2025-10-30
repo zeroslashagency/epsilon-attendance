@@ -134,7 +134,7 @@ export function OverviewHeader({ employee, stats, attendanceData = {} }: Overvie
               <TrendingUp className="h-5 w-5" />
               Activity
             </h2>
-            <div className="flex items-end gap-1 h-24 bg-gray-50 rounded-lg p-2">
+            <div className="flex items-end gap-1 h-24 bg-muted/30 rounded-lg p-2">
               {activityData.map((height, i) => {
                 const day = i + 1;
                 // Make bars more visible - scale up the height
