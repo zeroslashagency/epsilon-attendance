@@ -33,6 +33,18 @@ export function MainLayout({ children }: MainLayoutProps) {
   useEffect(() => {
     if ('Notification' in window) {
       setNotificationPermission(Notification.permission);
+      
+      // Listen for permission changes
+      const checkPermission = () => {
+        if ('Notification' in window) {
+          setNotificationPermission(Notification.permission);
+        }
+      };
+      
+      // Check permission periodically (some browsers don't fire events)
+      const interval = setInterval(checkPermission, 1000);
+      
+      return () => clearInterval(interval);
     }
   }, []);
 
@@ -52,48 +64,93 @@ export function MainLayout({ children }: MainLayoutProps) {
     
     if (!('Notification' in window)) {
       // Browser does not support notifications
-      toast.error('Browser notifications not supported');
+      toast.error('Browser notifications not supported', {
+        description: 'Your browser does not support desktop notifications.'
+      });
       return;
     }
     
     if (notificationPermission === 'granted') {
-      // Notifications already granted
-      toast.info('Notifications are enabled. Disable them in browser settings.');
-      // Show test notification to confirm it works
+      // Notifications already granted - show test notification
+      toast.info('Notifications are enabled', {
+        description: 'Sending a test notification...'
+      });
+      
       try {
-        new Notification('Test Notification', {
-          body: 'Notifications are working! You will receive updates when new attendance data arrives.',
-          icon: '/Epsilologo.svg',
-        });
+        // Use setTimeout to ensure notification works on all browsers
+        setTimeout(() => {
+          new Notification('Epsilon Attendance', {
+            body: 'Notifications are working! You will receive updates when new attendance data arrives.',
+            icon: '/Epsilologo.svg',
+            badge: '/Epsilologo.svg',
+            tag: 'test-notification',
+            requireInteraction: false,
+            silent: false
+          });
+        }, 100);
       } catch (err) {
         console.error('Error showing notification:', err);
+        toast.error('Failed to show notification', {
+          description: 'Please check browser settings.'
+        });
       }
       return;
     }
     
+    if (notificationPermission === 'denied') {
+      // Permission previously denied
+      toast.error('Notifications blocked', {
+        description: 'Please enable notifications in your browser settings.',
+        duration: 7000
+      });
+      return;
+    }
+    
     try {
-      // Requesting notification permission
+      // Request notification permission
+      toast.loading('Requesting notification permission...');
+      
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
       
       if (permission === 'granted') {
         // Permission granted
-        toast.success('🔔 Notifications enabled! You\'ll be notified of new attendance data.');
-        // Show test notification
-        new Notification('Notifications Enabled', {
-          body: 'You will now receive updates when new attendance data arrives',
-          icon: '/Epsilologo.svg',
+        toast.success('🔔 Notifications enabled!', {
+          description: 'You will be notified of new attendance data.'
         });
+        
+        // Show test notification with delay for better compatibility
+        setTimeout(() => {
+          try {
+            new Notification('Epsilon Attendance', {
+              body: 'Notifications enabled successfully! You will now receive updates.',
+              icon: '/Epsilologo.svg',
+              badge: '/Epsilologo.svg',
+              tag: 'welcome-notification',
+              requireInteraction: false
+            });
+          } catch (err) {
+            console.error('Error showing welcome notification:', err);
+          }
+        }, 500);
+        
       } else if (permission === 'denied') {
         // Permission denied
-        toast.error('Notification permission denied. Enable in browser settings.');
+        toast.error('Notifications blocked', {
+          description: 'You denied notification permission. Enable it in browser settings to receive updates.',
+          duration: 7000
+        });
       } else {
-        // Permission dismissed
-        toast.warning('Notification permission dismissed');
+        // Permission dismissed (default)
+        toast.warning('Notification permission dismissed', {
+          description: 'Click the bell icon again to enable notifications.'
+        });
       }
     } catch (err) {
       console.error('Error requesting permission:', err);
-      toast.error('Error requesting notification permission');
+      toast.error('Failed to request notification permission', {
+        description: 'Please try again or check browser settings.'
+      });
     }
   };
 

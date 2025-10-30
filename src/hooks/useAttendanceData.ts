@@ -183,11 +183,22 @@ export function useAttendanceData({
         
         // Show browser notification if supported
         if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('New Attendance Data', {
-            body: `${newRecordsCount} new attendance record${newRecordsCount > 1 ? 's' : ''} added`,
-            icon: '/Epsilologo.svg',
-            badge: '/Epsilologo.svg',
-          });
+          try {
+            // Use setTimeout for better browser compatibility
+            setTimeout(() => {
+              new Notification('Epsilon Attendance', {
+                body: `${newRecordsCount} new attendance record${newRecordsCount > 1 ? 's' : ''} added`,
+                icon: '/Epsilologo.svg',
+                badge: '/Epsilologo.svg',
+                tag: 'attendance-update',
+                requireInteraction: false,
+                silent: false,
+                timestamp: Date.now()
+              });
+            }, 100);
+          } catch (err) {
+            console.error('Failed to show notification:', err);
+          }
         }
       }
       
