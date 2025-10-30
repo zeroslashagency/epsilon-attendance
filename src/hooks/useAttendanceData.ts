@@ -192,8 +192,7 @@ export function useAttendanceData({
                 badge: '/Epsilologo.svg',
                 tag: 'attendance-update',
                 requireInteraction: false,
-                silent: false,
-                timestamp: Date.now()
+                silent: false
               });
             }, 100);
           } catch (err) {
