@@ -79,13 +79,6 @@ const App = () => (
                   </MainLayout>
                 </ProtectedRoute>
               } />
-              <Route path="/call-history" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <ComingSoonPage feature="Call History" />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
               <Route path="/role-test" element={
                 <ProtectedRoute>
                   <MainLayout>
