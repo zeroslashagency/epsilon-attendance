@@ -28,8 +28,8 @@ export const FEATURE_FLAGS = {
   },
   callHistory: {
     enabled: true, // Call History enabled
-    name: 'Call History',
-    path: '/call-history',
+    name: ' History',
+    path: '/history',
     description: 'View and manage call logs and history'
   }
 } as const;
