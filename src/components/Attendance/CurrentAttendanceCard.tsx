@@ -134,7 +134,7 @@ export function CurrentAttendanceCard({ attendanceData, isLoading }: CurrentAtte
                     Time
                   </div>
                   <div>Status</div>
-                  <div>Age</div>
+                  <div>Ago</div>
                 </div>
 
                 {/* Punch Logs */}
