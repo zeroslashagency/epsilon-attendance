@@ -25,25 +25,25 @@ export function MainLayout({ children }: MainLayoutProps) {
     if (path.includes('/reports')) return 'reports';
     return 'attendance';
   });
-  
+
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
 
   const tabs = getNavigationTabs();
-  
+
   useEffect(() => {
     if ('Notification' in window) {
       setNotificationPermission(Notification.permission);
-      
+
       // Listen for permission changes
       const checkPermission = () => {
         if ('Notification' in window) {
           setNotificationPermission(Notification.permission);
         }
       };
-      
+
       // Check permission periodically (some browsers don't fire events)
       const interval = setInterval(checkPermission, 1000);
-      
+
       return () => clearInterval(interval);
     }
   }, []);
@@ -51,16 +51,16 @@ export function MainLayout({ children }: MainLayoutProps) {
   const handleLogout = async () => {
     try {
       console.log('🚪 Logout button clicked');
-      
+
       // Show loading toast
       const toastId = toast.loading('Logging out...');
-      
+
       await logout();
       console.log('✅ Logout successful, redirecting...');
-      
+
       // Dismiss loading toast
       toast.dismiss(toastId);
-      
+
       // Use navigate instead of window.location for proper routing
       window.location.replace('/auth');
     } catch (error) {
@@ -68,10 +68,10 @@ export function MainLayout({ children }: MainLayoutProps) {
       toast.error('Logout failed. Please try again.');
     }
   };
-  
+
   const handleNotificationToggle = async () => {
     // Notification button clicked
-    
+
     if (!('Notification' in window)) {
       // Browser does not support notifications
       toast.error('Browser notifications not supported', {
@@ -79,13 +79,13 @@ export function MainLayout({ children }: MainLayoutProps) {
       });
       return;
     }
-    
+
     if (notificationPermission === 'granted') {
       // Notifications already granted - show test notification
       toast.info('Notifications are enabled', {
         description: 'Sending a test notification...'
       });
-      
+
       try {
         // Use setTimeout to ensure notification works on all browsers
         setTimeout(() => {
@@ -106,7 +106,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       }
       return;
     }
-    
+
     if (notificationPermission === 'denied') {
       // Permission previously denied
       toast.error('Notifications blocked', {
@@ -115,20 +115,20 @@ export function MainLayout({ children }: MainLayoutProps) {
       });
       return;
     }
-    
+
     try {
       // Request notification permission
       toast.loading('Requesting notification permission...');
-      
+
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
-      
+
       if (permission === 'granted') {
         // Permission granted
         toast.success('🔔 Notifications enabled!', {
           description: 'You will be notified of new attendance data.'
         });
-        
+
         // Show test notification with delay for better compatibility
         setTimeout(() => {
           try {
@@ -143,7 +143,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             console.error('Error showing welcome notification:', err);
           }
         }, 500);
-        
+
       } else if (permission === 'denied') {
         // Permission denied
         toast.error('Notifications blocked', {
@@ -175,7 +175,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             <div className="flex items-center">
               <DeviceStatus />
             </div>
-            
+
             {/* User Info, Notifications, Theme Toggle and Logout */}
             <div className="flex items-center gap-2">
               <div className="hidden sm:flex items-center gap-2 text-sm">
@@ -209,45 +209,45 @@ export function MainLayout({ children }: MainLayoutProps) {
               </Button>
             </div>
           </div>
-          
+
           {/* Bottom Row: Navigation Tabs */}
           <div className="flex gap-2 sm:gap-6 overflow-x-auto scrollbar-hide py-2">
             {tabs.map((tab) => (
-            tab.enabled ? (
-              <Link
-                key={tab.id}
-                to={tab.path}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "pb-2 px-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
-                  activeTab === tab.id
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {tab.label}
-              </Link>
-            ) : (
-              <div
-                key={tab.id}
-                className={cn(
-                  "pb-2 px-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-not-allowed relative group",
-                  "border-transparent text-muted-foreground/50"
-                )}
-                title="Coming Soon"
-              >
-                {tab.label}
-                <span className="ml-1 sm:ml-2 text-xs bg-gradient-to-r from-orange-500 to-red-500 px-1.5 sm:px-2 py-0.5 rounded-full text-white font-medium">
-                  Soon
-                </span>
-                
-                {/* Tooltip */}
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                  Coming Soon
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black"></div>
+              tab.enabled ? (
+                <Link
+                  key={tab.id}
+                  to={tab.path}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "pb-2 px-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                    activeTab === tab.id
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {tab.label}
+                </Link>
+              ) : (
+                <div
+                  key={tab.id}
+                  className={cn(
+                    "pb-2 px-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-not-allowed relative group",
+                    "border-transparent text-muted-foreground/50"
+                  )}
+                  title="Coming Soon"
+                >
+                  {tab.label}
+                  <span className="ml-1 sm:ml-2 text-xs bg-gradient-to-r from-orange-500 to-red-500 px-1.5 sm:px-2 py-0.5 rounded-full text-white font-medium">
+                    Soon
+                  </span>
+
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                    Coming Soon
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black"></div>
+                  </div>
                 </div>
-              </div>
-            )
+              )
             ))}
           </div>
         </div>

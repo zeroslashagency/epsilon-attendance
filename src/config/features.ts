@@ -28,9 +28,15 @@ export const FEATURE_FLAGS = {
   },
   callHistory: {
     enabled: true, // Call History enabled
-    name: ' History',
+    name: 'History',
     path: '/history',
     description: 'View and manage call logs and history'
+  },
+  fir: {
+    enabled: true,
+    name: 'FIR',
+    path: '/fir',
+    description: 'Mistake Reporting System'
   }
 } as const;
 

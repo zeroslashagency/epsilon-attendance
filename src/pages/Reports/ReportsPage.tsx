@@ -1,51 +1,238 @@
-import { useState } from "react";
-import { ReportsHeader } from "@/components/Reports/ReportsHeader";
-import { ReportsFilters } from "@/components/Reports/ReportsFilters";
-import { ReportsCharts } from "@/components/Reports/ReportsCharts";
-import { ReportsTable } from "@/components/Reports/ReportsTable";
-import { mockEmployee } from "@/utils/attendanceData";
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { reportService } from '@/services/fir/reportService';
+import { Report, ReportStatus, User } from '@/services/fir/types';
+import { ReportCard } from '@/components/FIR/ReportCard';
+import { ReportDetail } from '@/components/FIR/ReportDetail';
+import { FARModal } from '@/components/FIR/FARModal';
+import { Plus, Search, ShieldAlert, ChevronRight, Loader2 } from 'lucide-react';
 
-const ReportsPage = () => {
-  const [filters, setFilters] = useState({
-    dateRange: {
-      start: new Date(new Date().getFullYear(), 0, 1), // Start of current year
-      end: new Date()
-    },
-    reportType: 'monthly' as 'daily' | 'monthly' | 'yearly',
-    includeWeekends: false
+const ReportsPage: React.FC = () => {
+  const { user, employeeName, role } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'All' | 'MyAction' | 'Submitted'>('All');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+
+  const [farModalOpen, setFarModalOpen] = useState(false);
+  const [farModalType, setFarModalType] = useState<'GOOD' | 'BAD' | null>(null);
+
+  // Construct current user for FIR components
+  const currentUser: User | null = user ? {
+    id: user.id,
+    name: employeeName || 'Unknown',
+    role: role || 'Employee',
+    avatar: ''
+  } : null;
+
+  useEffect(() => {
+    loadReports();
+  }, [user]);
+
+  // Handle URL query param for initial selection
+  useEffect(() => {
+    const idFromUrl = searchParams.get('id');
+    if (idFromUrl) {
+      setSelectedReportId(idFromUrl);
+    }
+  }, [searchParams]);
+
+  // Update URL when selection changes
+  const handleSelectReport = (id: string | null) => {
+    setSelectedReportId(id);
+    if (id) {
+      setSearchParams({ id });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  const loadReports = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const data = await reportService.getReports();
+      let userReports = data;
+      // In a real app with RLS, the backend filters. Here we filter client side for the mock service/UI logic
+      if (role !== 'Super Admin') {
+        userReports = data.filter(r =>
+          r.reporter.id === user.id ||
+          r.assignedTo?.id === user.id ||
+          r.currentOwner?.id === user.id
+        );
+      }
+      setReports(userReports);
+    } catch (error) {
+      console.error("Failed to load reports", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateReport = (updated: Report) => {
+    setReports(prev => prev.map(r => r.id === updated.id ? updated : r));
+  };
+
+  const handleOpenModal = (type: 'GOOD' | 'BAD') => {
+    setFarModalType(type);
+    setFarModalOpen(true);
+  };
+
+  const handleReportSubmitted = () => {
+    loadReports();
+  };
+
+  // Filter Logic
+  const filteredReports = reports.filter(r => {
+    // 1. Tab Filter
+    if (filter === 'MyAction') {
+      if (currentUser) {
+        return r.currentOwner?.id === currentUser.id && r.status !== ReportStatus.Closed;
+      }
+      return false;
+    }
+    if (filter === 'Submitted') {
+      if (currentUser) {
+        return r.reporter.id === currentUser.id;
+      }
+      return false;
+    }
+
+    // 2. Search Query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        r.title.toLowerCase().includes(query) ||
+        r.description.toLowerCase().includes(query) ||
+        r.reporter.name.toLowerCase().includes(query) ||
+        r.id.toLowerCase().includes(query)
+      );
+    }
+
+    return true;
   });
 
-  const handleFiltersChange = (newFilters: typeof filters) => {
-    setFilters(newFilters);
-  };
-
-  const handleExport = (format: 'pdf' | 'excel' | 'csv') => {
-    console.log(`Exporting reports as ${format}`, filters);
-  };
+  const selectedReport = reports.find(r => r.id === selectedReportId);
 
   return (
-    <div className="space-y-6">
-      {/* Reports Header */}
-      <ReportsHeader 
-        employee={mockEmployee}
-        onExport={handleExport}
+    <div className="flex flex-col md:flex-row h-full overflow-hidden">
+      {/* List Pane */}
+      <div className={`${selectedReportId ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-[400px] xl:w-[450px] bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-full`}>
+        <div className="p-5 border-b bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-xl font-bold text-slate-800 dark:text-white">All Reports</h1>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleOpenModal('GOOD')}
+                className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full shadow-lg transition active:scale-90"
+                title="Positive Report"
+              >
+                <Plus size={20} />
+              </button>
+              <button
+                onClick={() => handleOpenModal('BAD')}
+                className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full shadow-lg transition active:scale-90"
+                title="Negative Report"
+              >
+                <Plus size={20} />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setFilter('All')}
+              className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition ${filter === 'All' ? 'bg-slate-800 dark:bg-slate-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilter('Submitted')}
+              className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition ${filter === 'Submitted' ? 'bg-slate-800 dark:bg-slate-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+            >
+              Submitted
+            </button>
+            <button
+              onClick={() => setFilter('MyAction')}
+              className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition ${filter === 'MyAction' ? 'bg-slate-800 dark:bg-slate-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+            >
+              My Action
+            </button>
+          </div>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text"
+              placeholder="Search reports..."
+              className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-transparent focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-300 rounded-lg text-sm text-slate-900 dark:text-white outline-none transition duration-200 placeholder-slate-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-950">
+          {loading ? (
+            <div className="flex justify-center p-10"><Loader2 className="animate-spin text-slate-400" /></div>
+          ) : filteredReports.length === 0 ? (
+            <div className="text-center py-10 text-slate-400 text-sm">No reports found matching criteria.</div>
+          ) : (
+            filteredReports.map(report => (
+              <ReportCard
+                key={report.id}
+                report={report}
+                isSelected={selectedReportId === report.id}
+                onClick={() => handleSelectReport(report.id)}
+              />
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Detail Pane */}
+      <div className={`${selectedReportId ? 'flex' : 'hidden md:flex'} flex-col flex-1 bg-slate-50/50 dark:bg-slate-950/50 h-full relative`}>
+        {selectedReport && currentUser ? (
+          <div className="h-full flex flex-col">
+            {/* Mobile Back Button */}
+            <div className="md:hidden p-4 bg-white dark:bg-slate-900 border-b dark:border-slate-800 flex items-center gap-2 sticky top-0 z-30">
+              <button onClick={() => handleSelectReport(null)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-600 dark:text-slate-300">
+                <ChevronRight className="rotate-180" size={24} />
+              </button>
+              <span className="font-semibold text-slate-800 dark:text-white">Report Details</span>
+            </div>
+
+            <ReportDetail
+              report={selectedReport}
+              onUpdate={handleUpdateReport}
+              currentUser={currentUser}
+            />
+          </div>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center text-slate-400 p-8">
+            <div className="w-20 h-20 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+              <ShieldAlert size={40} className="text-slate-400 dark:text-slate-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-600 dark:text-slate-300">No Report Selected</h3>
+            <p className="text-center max-w-xs mt-2 text-sm text-slate-500 dark:text-slate-400">Select a report from the list to view details, audit trail, and take action.</p>
+          </div>
+        )}
+      </div>
+
+      <FARModal
+        isOpen={farModalOpen}
+        onClose={() => setFarModalOpen(false)}
+        type={farModalType}
+        onReportSubmitted={handleReportSubmitted}
+        currentUser={currentUser}
       />
-
-      {/* Filters */}
-      <ReportsFilters 
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-      />
-
-      {/* Charts Section */}
-      <ReportsCharts filters={filters} />
-
-      {/* Table Section */}
-      <ReportsTable filters={filters} />
     </div>
   );
 };
 
 export default ReportsPage;
-
-

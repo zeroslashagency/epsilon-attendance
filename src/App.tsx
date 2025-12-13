@@ -20,6 +20,12 @@ import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
 import RoleTestPage from "./pages/RoleTestPage";
 import CallHistoryPage from "./pages/CallHistory/CallHistoryPage";
+import HeroShowcasePage from "./pages/HeroShowcasePage";
+import FIRPage from "./pages/FIR/FIRPage";
+import ReportsPage from "./pages/Reports/ReportsPage";
+import HistoryPage from "./pages/History/HistoryPage";
+import CategoriesPage from "./pages/Categories/CategoriesPage";
+import { FIRLayout } from "./layouts/FIRLayout";
 
 const queryClient = new QueryClient();
 
@@ -32,68 +38,84 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              
-              {/* Protected routes */}
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <MainLayout>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/design-showcase" element={<HeroShowcasePage />} />
+
+                {/* Protected routes */}
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <PageErrorBoundary>
+                        <AttendancePage />
+                      </PageErrorBoundary>
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/overview" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <PageErrorBoundary>
+                        <OverviewPage />
+                      </PageErrorBoundary>
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/calendar" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <PageErrorBoundary>
+                        <CalendarPage />
+                      </PageErrorBoundary>
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
+                {/* FIR Section Routes */}
+                <Route element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <FIRLayout />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }>
+                  <Route path="/fir" element={
                     <PageErrorBoundary>
-                      <AttendancePage />
+                      <FIRPage />
                     </PageErrorBoundary>
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/overview" element={
-                <ProtectedRoute>
-                  <MainLayout>
+                  } />
+                  <Route path="/reports" element={
                     <PageErrorBoundary>
-                      <OverviewPage />
+                      <ReportsPage />
                     </PageErrorBoundary>
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/calendar" element={
-                <ProtectedRoute>
-                  <MainLayout>
+                  } />
+                  <Route path="/categories" element={
                     <PageErrorBoundary>
-                      <CalendarPage />
+                      <CategoriesPage />
                     </PageErrorBoundary>
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/reports" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <ComingSoonPage feature="Reports" />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/history" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <ComingSoonPage feature="History" />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/role-test" element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <RoleTestPage />
-                  </MainLayout>
-                </ProtectedRoute>
-              } />
-              
-              {/* Catch-all route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+                  } />
+                  <Route path="/history" element={
+                    <PageErrorBoundary>
+                      <HistoryPage />
+                    </PageErrorBoundary>
+                  } />
+                </Route>
+                <Route path="/role-test" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <RoleTestPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
+
+                {/* Catch-all route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   </ErrorBoundary>
 );

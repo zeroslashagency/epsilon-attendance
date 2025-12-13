@@ -29,7 +29,7 @@ const AttendancePage = () => {
 
   // Determine which employee code to use
   const activeEmployeeCode = isStandalone ? standaloneEmployeeCode : employeeCode;
-  
+
   console.log('👤 AttendancePage - Auth Context:', {
     employeeCode,
     employeeName,
@@ -119,14 +119,14 @@ const AttendancePage = () => {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            You are viewing attendance data for <strong>{employeeName}</strong> (Employee Code: <strong>{employeeCode}</strong>) only. 
+            You are viewing attendance data for <strong>{employeeName}</strong> (Employee Code: <strong>{employeeCode}</strong>) only.
             Your role ({role}) restricts access to your own attendance records.
           </AlertDescription>
         </Alert>
       )}
 
       {/* Attendance Header */}
-      <AttendanceHeader 
+      <AttendanceHeader
         employee={{
           id: (isStandalone ? standaloneEmployeeCode : employeeCode) || '',
           name: (isStandalone ? standaloneEmployeeName : employeeName) || 'Unknown Employee',
@@ -143,7 +143,7 @@ const AttendancePage = () => {
         onRefresh={handleRefresh}
         onExport={() => toast.success("Attendance data exported successfully!")}
       />
-      
+
       {/* Background Refresh Indicator - Subtle & Non-intrusive */}
       {isBackgroundRefreshing && (
         <div className="fixed top-20 right-4 z-50 bg-green-50 text-green-700 px-3 py-2 rounded-lg shadow-sm border border-green-200 transition-all duration-300">
@@ -157,7 +157,7 @@ const AttendancePage = () => {
 
       {/* Current Attendance Status - Full Width */}
       <div className="w-full">
-        <CurrentAttendanceCard 
+        <CurrentAttendanceCard
           attendanceData={attendanceData}
           isLoading={isLoading && Object.keys(attendanceData).length === 0}
         />
@@ -166,14 +166,14 @@ const AttendancePage = () => {
       {/* Main Content Grid - Optimized for full width */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 w-full">
         <div className="lg:col-span-3">
-          <RecentAttendanceTable 
+          <RecentAttendanceTable
             attendanceData={attendanceData}
             onDayClick={handleDayClick}
             isLoading={isLoading && Object.keys(attendanceData).length === 0}
           />
         </div>
         <div className="lg:col-span-1">
-          <AttendanceSummary 
+          <AttendanceSummary
             attendanceData={attendanceData}
             isLoading={isLoading && Object.keys(attendanceData).length === 0}
           />
