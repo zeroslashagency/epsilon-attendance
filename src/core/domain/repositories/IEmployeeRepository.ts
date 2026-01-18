@@ -1,28 +1,31 @@
 /**
- * Repository Interface: IEmployeeRepository
- * Defines the contract for employee data access
+ * Employee Repository Interface
+ * Domain repository for employee operations
  */
-import { Employee } from '../entities/Employee';
-import { EmployeeCode } from '../value-objects/EmployeeCode';
+export interface Employee {
+    id: string;
+    employeeCode: string;
+    fullName: string;
+    email?: string;
+    department?: string;
+    role?: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface EmployeeFilter {
+    department?: string;
+    role?: string;
+    isActive?: boolean;
+    search?: string;
+}
 
 export interface IEmployeeRepository {
-  /**
-   * Get employee by code
-   */
-  getByCode(code: EmployeeCode): Promise<Employee | null>;
-
-  /**
-   * Get employee by ID
-   */
-  getById(id: string): Promise<Employee | null>;
-
-  /**
-   * Get all employees
-   */
-  getAll(): Promise<Employee[]>;
-
-  /**
-   * Save employee
-   */
-  save(employee: Employee): Promise<void>;
+    getById(id: string): Promise<Employee | null>;
+    getByEmployeeCode(code: string): Promise<Employee | null>;
+    getAll(filter?: EmployeeFilter): Promise<Employee[]>;
+    create(employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>): Promise<Employee>;
+    update(id: string, employee: Partial<Employee>): Promise<Employee>;
+    delete(id: string): Promise<void>;
 }

@@ -1,41 +1,12 @@
 /**
- * Use Case: GetAllEmployees
- * Fetches all employees
+ * Use Case: Get All Employees
  */
-import { injectable, inject } from 'inversify';
-import type { IEmployeeRepository } from '@/core/domain/repositories/IEmployeeRepository';
-import { GetAllEmployeesResponse } from '../../dtos/EmployeeDTO';
-import { EmployeeDTOMapper } from '../../mappers/EmployeeDTOMapper';
-import { TYPES } from '@/di/types';
-import type { ILogger } from '../../ports/ILogger';
+import type { IEmployeeRepository, EmployeeFilter } from '@/core/domain/repositories/IEmployeeRepository';
 
-@injectable()
 export class GetAllEmployees {
-  constructor(
-    @inject(TYPES.EmployeeRepository) private employeeRepository: IEmployeeRepository,
-    @inject(TYPES.Logger) private logger: ILogger
-  ) {}
+    constructor(private employeeRepo: IEmployeeRepository) { }
 
-  async execute(): Promise<GetAllEmployeesResponse> {
-    try {
-      this.logger.info('Executing GetAllEmployees use case');
-
-      // Fetch all employees
-      const employees = await this.employeeRepository.getAll();
-
-      // Convert to DTOs
-      const employeeDTOs = EmployeeDTOMapper.toDTOs(employees);
-
-      this.logger.info('Successfully fetched all employees', {
-        count: employees.length
-      });
-
-      return {
-        employees: employeeDTOs
-      };
-    } catch (error) {
-      this.logger.error('Failed to get all employees', error as Error);
-      throw error;
+    async execute(filter?: EmployeeFilter) {
+        return this.employeeRepo.getAll(filter);
     }
-  }
 }

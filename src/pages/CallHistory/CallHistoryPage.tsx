@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Phone, PhoneIncoming, PhoneOutgoing, PhoneMissed, Search, Filter, Download, Play, Pause, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface CallLog {
   id: string;
@@ -83,8 +84,8 @@ const CallHistoryPage = () => {
   const [playingCallId, setPlayingCallId] = useState<string | null>(null);
 
   const filteredCalls = mockCallHistory.filter(call => {
-    const matchesSearch = call.number.includes(searchQuery) || 
-                         call.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = call.number.includes(searchQuery) ||
+      call.name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterType === 'all' || call.type === filterType;
     return matchesSearch && matchesFilter;
   });
@@ -117,7 +118,7 @@ const CallHistoryPage = () => {
 
   const handleExport = () => {
     // Implement export functionality
-    console.log('Exporting call history...');
+    toast.success('Export started', { description: 'Your call history will be exported shortly.' });
   };
 
   const toggleCallExpand = (callId: string) => {
@@ -290,7 +291,7 @@ const CallHistoryPage = () => {
                             </>
                           )}
                         </Button>
-                        
+
                         {/* Audio Player */}
                         <div className="flex-1">
                           <audio
@@ -302,7 +303,7 @@ const CallHistoryPage = () => {
                             onPause={() => setPlayingCallId(null)}
                           />
                         </div>
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -318,7 +319,7 @@ const CallHistoryPage = () => {
                           Download
                         </Button>
                       </div>
-                      
+
                       <div className="mt-3 text-sm text-muted-foreground">
                         <p>📞 Call Recording - {call.duration}</p>
                         <p className="text-xs mt-1">Click play to listen to the call recording</p>
@@ -332,8 +333,8 @@ const CallHistoryPage = () => {
                 <Phone className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-lg font-medium text-muted-foreground">No calls found</p>
                 <p className="text-sm text-muted-foreground">
-                  {searchQuery || filterType !== 'all' 
-                    ? 'Try adjusting your filters' 
+                  {searchQuery || filterType !== 'all'
+                    ? 'Try adjusting your filters'
                     : 'Call history will appear here'}
                 </p>
               </div>

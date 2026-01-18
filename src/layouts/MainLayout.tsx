@@ -50,13 +50,11 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   const handleLogout = async () => {
     try {
-      console.log('🚪 Logout button clicked');
 
       // Show loading toast
       const toastId = toast.loading('Logging out...');
 
       await logout();
-      console.log('✅ Logout successful, redirecting...');
 
       // Dismiss loading toast
       toast.dismiss(toastId);
@@ -64,7 +62,6 @@ export function MainLayout({ children }: MainLayoutProps) {
       // Use navigate instead of window.location for proper routing
       window.location.replace('/auth');
     } catch (error) {
-      console.error('❌ Logout error:', error);
       toast.error('Logout failed. Please try again.');
     }
   };
@@ -99,7 +96,6 @@ export function MainLayout({ children }: MainLayoutProps) {
           });
         }, 100);
       } catch (err) {
-        console.error('Error showing notification:', err);
         toast.error('Failed to show notification', {
           description: 'Please check browser settings.'
         });
@@ -140,7 +136,6 @@ export function MainLayout({ children }: MainLayoutProps) {
               requireInteraction: false
             });
           } catch (err) {
-            console.error('Error showing welcome notification:', err);
           }
         }, 500);
 
@@ -157,7 +152,6 @@ export function MainLayout({ children }: MainLayoutProps) {
         });
       }
     } catch (err) {
-      console.error('Error requesting permission:', err);
       toast.error('Failed to request notification permission', {
         description: 'Please try again or check browser settings.'
       });
@@ -212,42 +206,20 @@ export function MainLayout({ children }: MainLayoutProps) {
 
           {/* Bottom Row: Navigation Tabs */}
           <div className="flex gap-2 sm:gap-6 overflow-x-auto scrollbar-hide py-2">
-            {tabs.map((tab) => (
-              tab.enabled ? (
-                <Link
-                  key={tab.id}
-                  to={tab.path}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "pb-2 px-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
-                    activeTab === tab.id
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  {tab.label}
-                </Link>
-              ) : (
-                <div
-                  key={tab.id}
-                  className={cn(
-                    "pb-2 px-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-not-allowed relative group",
-                    "border-transparent text-muted-foreground/50"
-                  )}
-                  title="Coming Soon"
-                >
-                  {tab.label}
-                  <span className="ml-1 sm:ml-2 text-xs bg-gradient-to-r from-orange-500 to-red-500 px-1.5 sm:px-2 py-0.5 rounded-full text-white font-medium">
-                    Soon
-                  </span>
-
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                    Coming Soon
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black"></div>
-                  </div>
-                </div>
-              )
+            {tabs.filter(tab => tab.enabled).map((tab) => (
+              <Link
+                key={tab.id}
+                to={tab.path}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "pb-2 px-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                  activeTab === tab.id
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {tab.label}
+              </Link>
             ))}
           </div>
         </div>

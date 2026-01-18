@@ -2,30 +2,40 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { MainLayout } from "@/layouts/MainLayout";
+import { OperationsLayout } from "@/layouts/OperationsLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageErrorBoundary } from "@/components/ErrorBoundaryUtils";
+import { lazy, Suspense } from "react";
 
-// Direct imports - lazy loading temporarily disabled for debugging
-import AttendancePage from "./pages/Attendance/AttendancePage";
-import OverviewPage from "./pages/Overview/OverviewPage";
-import CalendarPage from "./pages/Calendar/CalendarPage";
-import ComingSoonPage from "./pages/ComingSoonPage";
-import NotFound from "./pages/NotFound";
-import AuthPage from "./pages/AuthPage";
-import AdminPage from "./pages/AdminPage";
-import RoleTestPage from "./pages/RoleTestPage";
-import CallHistoryPage from "./pages/CallHistory/CallHistoryPage";
-import HeroShowcasePage from "./pages/HeroShowcasePage";
-import FIRPage from "./pages/FIR/FIRPage";
-import ReportsPage from "./pages/Reports/ReportsPage";
-import HistoryPage from "./pages/History/HistoryPage";
-import CategoriesPage from "./pages/Categories/CategoriesPage";
-import { FIRLayout } from "./layouts/FIRLayout";
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex h-screen w-full items-center justify-center bg-background">
+    <div className="flex flex-col items-center gap-4">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <p className="text-sm text-muted-foreground">Loading...</p>
+    </div>
+  </div>
+);
+
+// Lazy-loaded page components
+const AttendancePage = lazy(() => import("./pages/Attendance/AttendancePage"));
+const ComingSoonPage = lazy(() => import("./pages/ComingSoonPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const RoleTestPage = lazy(() => import("./pages/RoleTestPage"));
+const CallHistoryPage = lazy(() => import("./pages/CallHistory/CallHistoryPage"));
+const HeroShowcasePage = lazy(() => import("./pages/HeroShowcasePage"));
+const FIRPage = lazy(() => import("./pages/FIR/FIRPage"));
+const ReportsPage = lazy(() => import("./pages/Reports/ReportsPage"));
+const HistoryPage = lazy(() => import("./pages/History/HistoryPage"));
+const CategoriesPage = lazy(() => import("./pages/Categories/CategoriesPage"));
+const CallRecordingsPage = lazy(() => import("./pages/CallRecordings/CallRecordingsPage"));
 
 const queryClient = new QueryClient();
 
@@ -38,80 +48,114 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/design-showcase" element={<HeroShowcasePage />} />
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/admin" element={
+                    <ProtectedRoute requiredRole="Super Admin">
+                      <AdminPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/design-showcase" element={<HeroShowcasePage />} />
 
-                {/* Protected routes */}
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <PageErrorBoundary>
-                        <AttendancePage />
-                      </PageErrorBoundary>
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/overview" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <PageErrorBoundary>
-                        <OverviewPage />
-                      </PageErrorBoundary>
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/calendar" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <PageErrorBoundary>
-                        <CalendarPage />
-                      </PageErrorBoundary>
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
-                {/* FIR Section Routes */}
-                <Route element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <FIRLayout />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }>
-                  <Route path="/fir" element={
-                    <PageErrorBoundary>
-                      <FIRPage />
-                    </PageErrorBoundary>
+                  {/* Protected routes with MainLayout */}
+                  <Route path="/" element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <PageErrorBoundary>
+                          <AttendancePage />
+                        </PageErrorBoundary>
+                      </MainLayout>
+                    </ProtectedRoute>
                   } />
-                  <Route path="/reports" element={
-                    <PageErrorBoundary>
-                      <ReportsPage />
-                    </PageErrorBoundary>
+                  <Route path="/attendance" element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <PageErrorBoundary>
+                          <AttendancePage />
+                        </PageErrorBoundary>
+                      </MainLayout>
+                    </ProtectedRoute>
                   } />
-                  <Route path="/categories" element={
-                    <PageErrorBoundary>
-                      <CategoriesPage />
-                    </PageErrorBoundary>
-                  } />
-                  <Route path="/history" element={
-                    <PageErrorBoundary>
-                      <HistoryPage />
-                    </PageErrorBoundary>
-                  } />
-                </Route>
-                <Route path="/role-test" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <RoleTestPage />
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
 
-                {/* Catch-all route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+                  {/* Operations Section with Sidebar */}
+                  <Route path="/operations" element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <OperationsLayout />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }>
+                    <Route index element={<Navigate to="/operations/fir" replace />} />
+                    <Route path="fir" element={
+                      <PageErrorBoundary>
+                        <FIRPage />
+                      </PageErrorBoundary>
+                    } />
+                    <Route path="reports" element={
+                      <PageErrorBoundary>
+                        <ReportsPage />
+                      </PageErrorBoundary>
+                    } />
+                    <Route path="history" element={
+                      <PageErrorBoundary>
+                        <HistoryPage />
+                      </PageErrorBoundary>
+                    } />
+                    <Route path="categories" element={
+                      <PageErrorBoundary>
+                        <CategoriesPage />
+                      </PageErrorBoundary>
+                    } />
+                  </Route>
+
+                  {/* Calls (Separate Section) */}
+                  <Route path="/call-recordings" element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <PageErrorBoundary>
+                          <CallRecordingsPage />
+                        </PageErrorBoundary>
+                      </MainLayout>
+                    </ProtectedRoute>
+                  } />
+
+                  {/* Legacy Routes - redirect to Operations */}
+                  <Route path="/fir" element={<Navigate to="/operations/fir" replace />} />
+                  <Route path="/reports" element={<Navigate to="/operations/reports" replace />} />
+                  <Route path="/history" element={<Navigate to="/operations/history" replace />} />
+                  <Route path="/categories" element={<Navigate to="/operations/categories" replace />} />
+
+                  {/* Utility Routes */}
+                  <Route path="/call-history" element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <PageErrorBoundary>
+                          <CallHistoryPage />
+                        </PageErrorBoundary>
+                      </MainLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/role-test" element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <RoleTestPage />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/coming-soon" element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <ComingSoonPage feature="Coming Soon" />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  } />
+
+                  {/* 404 */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>

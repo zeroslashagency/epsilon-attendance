@@ -1,103 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Modern Light Theme - Matching Reference Design */
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 222.2 47% 11%;
+    /* Light Theme - Clean & Modern */
+    --background: 0 0% 96%;
+    --foreground: 240 10% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 47% 11%;
+    --card-foreground: 240 10% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47% 11%;
+    --popover-foreground: 240 10% 10%;
 
-    --primary: 142.1 70% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 75 80% 50%;
+    --primary-foreground: 240 10% 10%;
 
-    --secondary: 142.1 20% 96%;
-    --secondary-foreground: 142.1 70% 25%;
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 240 10% 10%;
 
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 240 5% 46%;
 
-    --accent: 142.1 30% 95%;
-    --accent-foreground: 142.1 70% 30%;
+    --accent: 75 80% 50%;
+    --accent-foreground: 240 10% 10%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 20% 88%;
-    --input: 214 20% 94%;
-    --ring: 142.1 70% 45%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 75 80% 50%;
 
-    /* Attendance Status Colors */
-    --status-present: 142.1 76.2% 36.3%;
-    --status-late: 43.3 96.4% 56.3%;
-    --status-absent: 0 62.8% 30.6%;
-    --status-sick: 221.2 83.2% 53.3%;
-    --status-vacation: 24.6 95% 53.1%;
-    --status-break: 262.1 83.3% 57.8%;
+    /* Status Colors */
+    --status-present: 142 76% 36%;
+    --status-late: 45 93% 47%;
+    --status-absent: 0 84% 60%;
+    --status-high: 45 93% 47%;
+    --status-medium: 280 67% 52%;
+    --status-low: 142 76% 36%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(142.1 70% 45%), hsl(142.1 65% 55%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(210 25% 98%));
-    --gradient-accent: linear-gradient(135deg, hsl(142.1 30% 96%), hsl(142.1 25% 98%));
+    --radius: 1rem;
 
-    --radius: 0.75rem;
+    /* Sidebar - Dark */
+    --sidebar-background: 240 10% 10%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 75 80% 50%;
+    --sidebar-primary-foreground: 240 10% 10%;
+    --sidebar-accent: 240 5% 20%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 5% 20%;
+    --sidebar-ring: 75 80% 50%;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222.2 47% 11%;
-    --sidebar-primary: 142.1 70% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 142.1 20% 96%;
-    --sidebar-accent-foreground: 142.1 70% 25%;
-    --sidebar-border: 214 20% 88%;
-    --sidebar-ring: 142.1 70% 45%;
+    /* Chart Colors */
+    --chart-1: 75 80% 50%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 45 93% 47%;
+    --chart-4: 280 67% 52%;
+    --chart-5: 0 84% 60%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark Theme */
+    --background: 240 10% 4%;
+    --foreground: 0 0% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 10% 8%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 240 5.9% 10%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 240 10% 8%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 142.1 76.2% 36.3%;
-    --primary-foreground: 355.7 100% 97.3%;
+    --primary: 75 80% 50%;
+    --primary-foreground: 240 10% 10%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 240 5% 15%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 65%;
 
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 240 5% 15%;
+    --accent-foreground: 0 0% 95%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 95%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 142.1 76.2% 36.3%;
+    --border: 240 5% 15%;
+    --input: 240 5% 15%;
+    --ring: 75 80% 50%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 142.1 76.2% 36.3%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 142.1 76.2% 36.3%;
+    --sidebar-background: 240 10% 6%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 75 80% 50%;
+    --sidebar-primary-foreground: 240 10% 10%;
+    --sidebar-accent: 240 5% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 5% 15%;
+    --sidebar-ring: 75 80% 50%;
+
+    --chart-1: 75 80% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -107,11 +118,32 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 
   /* Smooth animations */
   * {
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Custom utility classes for the reference design */
+@layer utilities {
+  .card-shadow {
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.08),
+      0 4px 16px -4px rgba(0, 0, 0, 0.06);
+  }
+
+  .badge-high {
+    @apply bg-yellow-400 text-yellow-900;
+  }
+
+  .badge-medium {
+    @apply bg-purple-400 text-white;
+  }
+
+  .badge-low {
+    @apply bg-emerald-400 text-emerald-900;
   }
 }

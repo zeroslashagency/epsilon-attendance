@@ -4,8 +4,8 @@
  */
 export const environment = {
   supabase: {
-    url: import.meta.env.VITE_SUPABASE_URL || 'https://sxnaopzgaddvziplrlbe.supabase.co',
-    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4bmFvcHpnYWRkdnppcGxybGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY2MjUyODQsImV4cCI6MjA3MjIwMTI4NH0.o3UAaJtrNpVh_AsljSC1oZNkJPvQomedvtJlXTE3L6w'
+    url: import.meta.env.VITE_SUPABASE_URL,
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY
   },
   app: {
     isDevelopment: import.meta.env.DEV,
@@ -13,3 +13,10 @@ export const environment = {
     mode: import.meta.env.MODE
   }
 };
+
+// Runtime validation - fail fast if credentials are missing
+if (!environment.supabase.url || !environment.supabase.anonKey) {
+  throw new Error(
+    'Missing required environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set'
+  );
+}

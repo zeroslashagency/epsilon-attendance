@@ -2,11 +2,9 @@
  * Service Implementation: ToastNotificationService
  * Implements INotificationService using Sonner toast
  */
-import { injectable } from 'inversify';
 import { INotificationService } from '@/core/application/ports/INotificationService';
 import { toast } from 'sonner';
 
-@injectable()
 export class ToastNotificationService implements INotificationService {
   success(message: string): void {
     toast.success(message);

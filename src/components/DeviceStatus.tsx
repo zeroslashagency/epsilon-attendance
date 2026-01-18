@@ -27,24 +27,23 @@ export const DeviceStatus: React.FC = () => {
         .limit(1);
 
       if (logsError) {
-        console.error('❌ Error fetching device logs:', logsError);
         setLoading(false);
         return;
       }
 
-      console.log('📊 Raw Supabase Data:', logs);
+
 
       if (logs && logs.length > 0) {
         const lastLog = logs[0];
-        
+
         // Try all possible timestamp fields to get the MOST RECENT one
         const timestamps = [
           lastLog.sync_time,
           lastLog.log_date
         ].filter(Boolean);
-        
-        console.log('🕐 All timestamps found:', timestamps);
-        
+
+
+
         // Use sync_time as it's when the device synced to Supabase
         const mostRecentTime = lastLog.sync_time || lastLog.log_date;
         const lastSync = new Date(mostRecentTime);
@@ -52,16 +51,9 @@ export const DeviceStatus: React.FC = () => {
         const diffMs = now.getTime() - lastSync.getTime();
         const diffMins = Math.floor(diffMs / (1000 * 60));
         const diffSecs = Math.floor(diffMs / 1000);
-        
-        console.log('📡 Device Status Check:', {
-          mostRecentTime,
-          lastSync: lastSync.toISOString(),
-          now: now.toISOString(),
-          diffSecs: diffSecs + ' seconds',
-          diffMins: diffMins + ' minutes',
-          allFields: lastLog
-        });
-        
+
+
+
         // Real-time thresholds based on 5-second sync
         let calculatedStatus: 'online' | 'warning' | 'offline' = 'online';
         if (diffMins > 5) calculatedStatus = 'offline';  // 5 minutes
@@ -91,7 +83,6 @@ export const DeviceStatus: React.FC = () => {
         });
       }
     } catch (err) {
-      console.error('Device status fetch error:', err);
     } finally {
       setLoading(false);
     }
@@ -99,11 +90,41 @@ export const DeviceStatus: React.FC = () => {
 
   useEffect(() => {
     fetchDeviceStatus();
-    
-    // Refresh device status every 30 seconds
-    const interval = setInterval(fetchDeviceStatus, 30000);
-    
-    return () => clearInterval(interval);
+
+    let interval: NodeJS.Timeout | null = null;
+
+    // Start polling
+    const startPolling = () => {
+      if (!interval) {
+        interval = setInterval(fetchDeviceStatus, 30000);
+      }
+    };
+
+    // Stop polling
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    // Handle visibility change to save battery when tab is hidden
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        fetchDeviceStatus(); // Refresh immediately when tab becomes visible
+        startPolling();
+      }
+    };
+
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   if (loading) {
@@ -169,7 +190,7 @@ export const DeviceStatus: React.FC = () => {
     if (!date || isNaN(date.getTime())) {
       return 'unknown';
     }
-    
+
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));

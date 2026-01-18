@@ -1,172 +1,85 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { reportService } from '@/services/fir/reportService';
-import { Report, ReportStatus, Priority } from '@/services/fir/types';
-import { DashboardStats } from '@/components/FIR/DashboardStats';
-import { FARModal } from '@/components/FIR/FARModal';
-import { ShieldAlert, Plus, ChevronRight, Loader2 } from 'lucide-react';
 
-const FIRPage: React.FC = () => {
-    const { user, employeeName, role } = useAuth();
-    const navigate = useNavigate();
-    const [reports, setReports] = useState<Report[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [farModalOpen, setFarModalOpen] = useState(false);
-    const [farModalType, setFarModalType] = useState<'GOOD' | 'BAD' | null>(null);
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { AlertCircle, CheckCircle2, Clock, XCircle } from "lucide-react";
 
-    // Construct current user object for FIR components
-    const currentUser = user ? {
-        id: user.id,
-        name: employeeName || 'Unknown',
-        role: role || 'Employee',
-        avatar: '' // Placeholder or fetch if available
-    } : null;
+/**
+ * FIR (First Information Report) Dashboard Page
+ * Features a stats overview and recent reports
+ */
+const FIRPage = () => {
+    const { employeeName } = useAuth();
 
-    useEffect(() => {
-        loadReports();
-    }, [user]);
-
-    const loadReports = async () => {
-        if (!user) return;
-        setLoading(true);
-        try {
-            const data = await reportService.getReports();
-            // Filter based on role if needed, currently mockService might return all
-            // In a real scenario, RLS would handle this, but for UI we might filter
-            let userReports = data;
-            if (role !== 'Super Admin') {
-                userReports = data.filter(r =>
-                    r.reporter.id === user.id ||
-                    r.assignedTo?.id === user.id ||
-                    r.currentOwner?.id === user.id ||
-                    r.stage3?.by === user.id // Just in case
-                );
-            }
-            setReports(userReports);
-        } catch (error) {
-            console.error("Failed to load reports", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleOpenModal = (type: 'GOOD' | 'BAD') => {
-        setFarModalType(type);
-        setFarModalOpen(true);
-    };
-
-    const handleReportSubmitted = () => {
-        loadReports();
-    };
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-full bg-slate-50 dark:bg-slate-950">
-                <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={32} />
-            </div>
-        );
-    }
+    // Mock data for stats - replace with real data fetching later
+    const stats = [
+        { title: "Total Reports", value: "12", icon: AlertCircle, color: "text-blue-600", bg: "bg-blue-100" },
+        { title: "Resolved", value: "8", icon: CheckCircle2, color: "text-green-600", bg: "bg-green-100" },
+        { title: "Pending", value: "3", icon: Clock, color: "text-yellow-600", bg: "bg-yellow-100" },
+        { title: "Rejected", value: "1", icon: XCircle, color: "text-red-600", bg: "bg-red-100" }
+    ];
 
     return (
-        <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-6 md:p-10 h-full">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex justify-between items-end mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Dashboard</h1>
-                        <p className="text-slate-500 dark:text-slate-400">Overview of your error reports and pending actions</p>
-                    </div>
-                    <div className="hidden md:flex gap-3">
-                        <button
-                            onClick={() => handleOpenModal('GOOD')}
-                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-green-200/50 dark:shadow-none transition-all active:scale-95"
-                        >
-                            <Plus size={18} /> Positive
-                        </button>
-                        <button
-                            onClick={() => handleOpenModal('BAD')}
-                            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-red-200/50 dark:shadow-none transition-all active:scale-95"
-                        >
-                            <Plus size={18} /> Negative
-                        </button>
-                    </div>
-                </div>
-
-                {/* Stats */}
-                <div className="mb-8">
-                    <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4">Quick Actions</h2>
-                    <DashboardStats reports={reports} />
-                </div>
-
-                {/* Recent Reports */}
-                <div>
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">Recent Reports</h2>
-                        <button
-                            onClick={() => navigate('/reports')}
-                            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-medium"
-                        >
-                            View All
-                        </button>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                        {reports.length === 0 ? (
-                            <div className="p-10 text-center">
-                                <p className="text-slate-500 dark:text-slate-400 mb-4">No reports found. Create your first report!</p>
-                                <div className="flex justify-center gap-3">
-                                    <button
-                                        onClick={() => handleOpenModal('GOOD')}
-                                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                                    >
-                                        + Positive
-                                    </button>
-                                    <button
-                                        onClick={() => handleOpenModal('BAD')}
-                                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                                    >
-                                        + Negative
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {reports.slice(0, 5).map(report => (
-                                    <div
-                                        key={report.id}
-                                        onClick={() => navigate(`/reports?id=${report.id}`)}
-                                        className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition flex items-center gap-4"
-                                    >
-                                        <div className={`p-2 rounded-lg ${report.priority === Priority.High ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
-                                            <ShieldAlert size={20} />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{report.title}</h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{report.description}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        ${report.status === ReportStatus.Closed ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400'}`}>
-                                                {report.status}
-                                            </span>
-                                            <div className="text-xs text-slate-400 mt-1">{new Date(report.reportedAt).toLocaleDateString()}</div>
-                                        </div>
-                                        <ChevronRight size={16} className="text-slate-300 dark:text-slate-600" />
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
+        <div className="p-6 space-y-6 max-w-7xl mx-auto">
+            <div className="flex flex-col gap-2">
+                <h1 className="text-3xl font-bold tracking-tight">FIR Dashboard</h1>
+                <p className="text-muted-foreground">
+                    Welcome back, {employeeName || 'User'}. Here's an overview of mistake reports.
+                </p>
             </div>
 
-            <FARModal
-                isOpen={farModalOpen}
-                onClose={() => setFarModalOpen(false)}
-                type={farModalType}
-                onReportSubmitted={handleReportSubmitted}
-                currentUser={currentUser}
-            />
+            {/* Stats Overview */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {stats.map((stat, index) => (
+                    <Card key={index} className="card-shadow border-none">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">
+                                {stat.title}
+                            </CardTitle>
+                            <div className={`p-2 rounded-full ${stat.bg}`}>
+                                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{stat.value}</div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                +20.1% from last month
+                            </p>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            {/* Recent Reports Placeholder */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <Card className="col-span-4 card-shadow border-none">
+                    <CardHeader>
+                        <CardTitle>Recent Reports</CardTitle>
+                        <CardDescription>
+                            Recent mistake reports filed in the system.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-[300px] flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                            No recent activity to display
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="col-span-3 card-shadow border-none">
+                    <CardHeader>
+                        <CardTitle>Quick Actions</CardTitle>
+                        <CardDescription>
+                            Common actions for FIR management
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {/* Add quick action buttons here later */}
+                        <div className="text-sm text-muted-foreground">
+                            Quick actions coming soon...
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 };

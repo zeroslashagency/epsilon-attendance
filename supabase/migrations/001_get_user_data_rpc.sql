@@ -8,6 +8,11 @@ AS $$
 DECLARE
     result JSON;
 BEGIN
+    -- Security Check: Ensure user can only request their own data
+    IF auth.uid() != p_user_id THEN
+        RAISE EXCEPTION 'Unauthorized: You can only view your own profile.';
+    END IF;
+
     SELECT json_build_object(
         'employee_code', COALESCE(eam.employee_code, p.employee_code, 'demo'),
         'employee_name', COALESCE(em.employee_name, p.full_name, 'Demo Employee'),

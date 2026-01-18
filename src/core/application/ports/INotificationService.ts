@@ -1,12 +1,12 @@
 /**
- * Application Port: INotificationService
- * Interface for notification service
+ * Notification Service Port Interface
+ * Application port for user notifications
  */
 export interface INotificationService {
-  success(message: string): void;
-  error(message: string): void;
-  info(message: string): void;
-  warning(message: string): void;
-  loading(message: string): string; // Returns ID for updating
-  dismiss(id: string): void;
+    success(message: string): void;
+    error(message: string): void;
+    info(message: string): void;
+    warning(message: string): void;
+    loading(message: string): string;
+    dismiss(id: string): void;
 }

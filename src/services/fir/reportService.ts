@@ -13,17 +13,18 @@ class ReportService {
 
     async getReports(): Promise<Report[]> {
         try {
-            // Fetch from Supabase fir_activity
+            // OPTIMIZED: Single query with all needed data via lookup
+            // Fetch fir_activity with employee_master join
             const { data: firData, error } = await supabase
                 .from('fir_activity')
                 .select(`
-          *,
-          employee_master (
-            id,
-            employee_name,
-            employee_code
-          )
-        `)
+                    *,
+                    employee_master (
+                        id,
+                        employee_name,
+                        employee_code
+                    )
+                `)
                 .order('created_at', { ascending: false });
 
             if (error) {
@@ -35,10 +36,18 @@ class ReportService {
                 return [];
             }
 
-            // Fetch profiles to map employee details to Auth Users (UUID)
+            // Collect unique employee codes for batch profile lookup
+            const employeeCodes = [...new Set(
+                firData
+                    .map((row: any) => row.employee_master?.employee_code)
+                    .filter(Boolean)
+            )];
+
+            // Single batch query for profiles (instead of separate query)
             const { data: profiles } = await supabase
                 .from('profiles')
-                .select('id, employee_code, full_name, role');
+                .select('id, employee_code, full_name, role')
+                .in('employee_code', employeeCodes);
 
             // Create a map of employee_code -> Profile Link
             const profileMap = new Map<string, any>();

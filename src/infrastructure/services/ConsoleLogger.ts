@@ -2,10 +2,8 @@
  * Service Implementation: ConsoleLogger
  * Implements ILogger using console
  */
-import { injectable } from 'inversify';
 import { ILogger } from '@/core/application/ports/ILogger';
 
-@injectable()
 export class ConsoleLogger implements ILogger {
   private formatMessage(level: string, message: string, context?: Record<string, any>): string {
     const timestamp = new Date().toISOString();

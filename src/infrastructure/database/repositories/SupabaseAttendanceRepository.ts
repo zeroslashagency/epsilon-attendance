@@ -1,171 +1,106 @@
 /**
- * Repository Implementation: SupabaseAttendanceRepository
+ * Supabase Attendance Repository Implementation
  * Implements IAttendanceRepository using Supabase
  */
-import { injectable, inject } from 'inversify';
-import { IAttendanceRepository } from '@/core/domain/repositories/IAttendanceRepository';
-import { Attendance } from '@/core/domain/entities/Attendance';
-import { EmployeeCode } from '@/core/domain/value-objects/EmployeeCode';
-import { DateRange } from '@/core/domain/value-objects/DateRange';
-import { AttendanceMapper } from '../mappers/AttendanceMapper';
-import { supabase } from '../supabase/client';
-import { TYPES } from '@/di/types';
-import { ILogger } from '@/core/application/ports/ILogger';
-import { NotFoundError } from '@/core/domain/errors';
+import {
+    IAttendanceRepository,
+    AttendanceRecord,
+    AttendanceFilter
+} from '@/core/domain/repositories/IAttendanceRepository';
+import { supabase } from '@/lib/supabase';
 
-@injectable()
 export class SupabaseAttendanceRepository implements IAttendanceRepository {
-  constructor(
-    @inject(TYPES.Logger) private logger: ILogger
-  ) {}
+    private tableName = 'attendance_logs';
 
-  async getByEmployeeCode(
-    employeeCode: EmployeeCode,
-    dateRange: DateRange
-  ): Promise<Attendance[]> {
-    try {
-      this.logger.info('Fetching attendance data', {
-        employeeCode: employeeCode.value,
-        startDate: dateRange.startDate.toISOString(),
-        endDate: dateRange.endDate.toISOString()
-      });
+    async getById(id: string): Promise<AttendanceRecord | null> {
+        const { data, error } = await supabase
+            .from(this.tableName)
+            .select('*')
+            .eq('id', id)
+            .single();
 
-      // Call the RPC function
-      const { data, error } = await supabase.rpc('process_attendance_logs', {
-        p_employee_code: employeeCode.value,
-        p_start_date: dateRange.startDate.toISOString().split('T')[0],
-        p_end_date: dateRange.endDate.toISOString().split('T')[0]
-      });
+        if (error || !data) return null;
+        return this.mapToRecord(data);
+    }
 
-      if (error) {
-        this.logger.error('Error fetching attendance data', error);
-        throw error;
-      }
+    async getAll(filter?: AttendanceFilter): Promise<AttendanceRecord[]> {
+        let query = supabase.from(this.tableName).select('*');
 
-      if (!data) {
-        this.logger.warn('No attendance data found', {
-          employeeCode: employeeCode.value
-        });
-        return [];
-      }
-
-      // Convert the JSON response to domain entities
-      const attendances: Attendance[] = [];
-      
-      for (const [date, record] of Object.entries(data as Record<string, any>)) {
-        try {
-          const attendance = AttendanceMapper.toDomain(
-            record,
-            employeeCode.value
-          );
-          attendances.push(attendance);
-        } catch (error) {
-          this.logger.warn('Failed to map attendance record', {
-            date,
-            error: error instanceof Error ? error.message : 'Unknown error'
-          });
+        if (filter?.startDate) {
+            query = query.gte('date', filter.startDate);
         }
-      }
-
-      this.logger.info('Successfully fetched attendance data', {
-        employeeCode: employeeCode.value,
-        count: attendances.length
-      });
-
-      return attendances;
-    } catch (error) {
-      this.logger.error('Failed to fetch attendance data', error as Error, {
-        employeeCode: employeeCode.value
-      });
-      throw error;
-    }
-  }
-
-  async getByDate(
-    employeeCode: EmployeeCode,
-    date: Date
-  ): Promise<Attendance | null> {
-    try {
-      const dateRange = DateRange.create(date, date);
-      const attendances = await this.getByEmployeeCode(employeeCode, dateRange);
-      
-      return attendances.length > 0 ? attendances[0] : null;
-    } catch (error) {
-      this.logger.error('Failed to fetch attendance by date', error as Error, {
-        employeeCode: employeeCode.value,
-        date: date.toISOString()
-      });
-      throw error;
-    }
-  }
-
-  async save(attendance: Attendance): Promise<void> {
-    try {
-      this.logger.info('Saving attendance', {
-        employeeCode: attendance.employeeCode.value,
-        date: attendance.date.toISOString()
-      });
-
-      // Convert to database format
-      const record = AttendanceMapper.toDatabase(attendance);
-
-      // In a real implementation, you would save this to a processed_attendance table
-      // For now, we'll just log it since we're using the RPC function for reads
-      this.logger.info('Attendance saved (mock)', { record });
-
-      // TODO: Implement actual save logic when we have a processed_attendance table
-    } catch (error) {
-      this.logger.error('Failed to save attendance', error as Error, {
-        employeeCode: attendance.employeeCode.value
-      });
-      throw error;
-    }
-  }
-
-  subscribeToUpdates(
-    employeeCode: EmployeeCode,
-    callback: (attendance: Attendance) => void
-  ): () => void {
-    this.logger.info('Subscribing to attendance updates', {
-      employeeCode: employeeCode.value
-    });
-
-    // Subscribe to employee_raw_logs changes
-    const channel = supabase
-      .channel('employee_raw_logs_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'employee_raw_logs',
-          filter: `employee_code=eq.${employeeCode.value}`
-        },
-        async (payload) => {
-          this.logger.info('Received real-time update', {
-            employeeCode: employeeCode.value,
-            event: payload.eventType
-          });
-
-          // Fetch updated data for the affected date
-          if (payload.new && 'log_date' in payload.new) {
-            const logDate = new Date(payload.new.log_date as string);
-            const attendance = await this.getByDate(employeeCode, logDate);
-            
-            if (attendance) {
-              callback(attendance);
-            }
-          }
+        if (filter?.endDate) {
+            query = query.lte('date', filter.endDate);
         }
-      )
-      .subscribe();
+        if (filter?.employeeId) {
+            query = query.eq('employee_id', filter.employeeId);
+        }
+        if (filter?.status) {
+            query = query.eq('status', filter.status);
+        }
 
-    // Return unsubscribe function
-    return () => {
-      this.logger.info('Unsubscribing from attendance updates', {
-        employeeCode: employeeCode.value
-      });
-      supabase.removeChannel(channel);
-    };
-  }
+        const { data, error } = await query.order('date', { ascending: false });
+
+        if (error || !data) return [];
+        return data.map(this.mapToRecord);
+    }
+
+    async getByEmployeeId(employeeId: string, filter?: AttendanceFilter): Promise<AttendanceRecord[]> {
+        return this.getAll({ ...filter, employeeId });
+    }
+
+    async create(record: Omit<AttendanceRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<AttendanceRecord> {
+        const { data, error } = await supabase
+            .from(this.tableName)
+            .insert({
+                employee_id: record.employeeId,
+                date: record.date,
+                check_in: record.checkIn,
+                check_out: record.checkOut,
+                status: record.status,
+            })
+            .select()
+            .single();
+
+        if (error) throw new Error(`Failed to create attendance: ${error.message}`);
+        return this.mapToRecord(data);
+    }
+
+    async update(id: string, record: Partial<AttendanceRecord>): Promise<AttendanceRecord> {
+        const { data, error } = await supabase
+            .from(this.tableName)
+            .update({
+                ...(record.checkIn && { check_in: record.checkIn }),
+                ...(record.checkOut && { check_out: record.checkOut }),
+                ...(record.status && { status: record.status }),
+            })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw new Error(`Failed to update attendance: ${error.message}`);
+        return this.mapToRecord(data);
+    }
+
+    async delete(id: string): Promise<void> {
+        const { error } = await supabase
+            .from(this.tableName)
+            .delete()
+            .eq('id', id);
+
+        if (error) throw new Error(`Failed to delete attendance: ${error.message}`);
+    }
+
+    private mapToRecord(data: any): AttendanceRecord {
+        return {
+            id: data.id,
+            employeeId: data.employee_id,
+            date: data.date,
+            checkIn: data.check_in,
+            checkOut: data.check_out,
+            status: data.status,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+        };
+    }
 }

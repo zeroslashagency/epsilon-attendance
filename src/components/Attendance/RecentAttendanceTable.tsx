@@ -1,3 +1,4 @@
+import { memo, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -12,11 +13,33 @@ interface RecentAttendanceTableProps {
   onDayClick: (date: string, dayData?: ProcessedDayData) => void;
 }
 
-export function RecentAttendanceTable({ attendanceData, isLoading, onDayClick }: RecentAttendanceTableProps) {
-  // Get recent 15 days of data, sorted by date (most recent first)
-  const recentData = Object.entries(attendanceData)
-    .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
-    .slice(0, 15);
+/**
+ * RecentAttendanceTable Component
+ * 
+ * Displays the last 15 days of attendance records in a responsive table format.
+ * Memoized to prevent unnecessary re-renders when parent components update.
+ * 
+ * @param attendanceData - Record of date strings to processed attendance data
+ * @param isLoading - Whether data is currently loading
+ * @param onDayClick - Callback when a day row is clicked
+ * 
+ * @example
+ * ```tsx
+ * <RecentAttendanceTable
+ *   attendanceData={data}
+ *   isLoading={false}
+ *   onDayClick={(date, dayData) => handleDayClick(date, dayData)}
+ * />
+ * ```
+ */
+function RecentAttendanceTableComponent({ attendanceData, isLoading, onDayClick }: RecentAttendanceTableProps) {
+  // Memoize sorted data to avoid recalculating on every render
+  const recentData = useMemo(() =>
+    Object.entries(attendanceData)
+      .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
+      .slice(0, 15),
+    [attendanceData]
+  );
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -46,8 +69,8 @@ export function RecentAttendanceTable({ attendanceData, isLoading, onDayClick }:
     } else if (date.toDateString() === yesterday.toDateString()) {
       return "Yesterday";
     } else {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
         day: 'numeric',
         weekday: 'short'
       });
@@ -106,7 +129,7 @@ export function RecentAttendanceTable({ attendanceData, isLoading, onDayClick }:
             </TableHeader>
             <TableBody>
               {recentData.map(([date, dayData]) => (
-                <TableRow 
+                <TableRow
                   key={date}
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => onDayClick(date, dayData)}
@@ -115,9 +138,9 @@ export function RecentAttendanceTable({ attendanceData, isLoading, onDayClick }:
                     <div className="min-w-[80px]">
                       <div className="font-semibold text-sm sm:text-base">{formatDate(date)}</div>
                       <div className="text-xs text-muted-foreground hidden sm:block">
-                        {new Date(date).toLocaleDateString('en-US', { 
+                        {new Date(date).toLocaleDateString('en-US', {
                           year: 'numeric',
-                          month: 'short', 
+                          month: 'short',
                           day: 'numeric'
                         })}
                       </div>
@@ -182,4 +205,5 @@ export function RecentAttendanceTable({ attendanceData, isLoading, onDayClick }:
   );
 }
 
-
+// Memoize to prevent unnecessary re-renders when parent updates
+export const RecentAttendanceTable = memo(RecentAttendanceTableComponent);

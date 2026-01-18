@@ -1,185 +1,117 @@
 /**
- * Repository Implementation: SupabaseEmployeeRepository
+ * Supabase Employee Repository Implementation
  * Implements IEmployeeRepository using Supabase
  */
-import { injectable, inject } from 'inversify';
-import { IEmployeeRepository } from '@/core/domain/repositories/IEmployeeRepository';
-import { Employee } from '@/core/domain/entities/Employee';
-import { EmployeeCode } from '@/core/domain/value-objects/EmployeeCode';
-import { EmployeeMapper } from '../mappers/EmployeeMapper';
-import { supabase } from '../supabase/client';
-import { TYPES } from '@/di/types';
-import { ILogger } from '@/core/application/ports/ILogger';
-import { NotFoundError } from '@/core/domain/errors';
+import {
+    IEmployeeRepository,
+    Employee,
+    EmployeeFilter
+} from '@/core/domain/repositories/IEmployeeRepository';
+import { supabase } from '@/lib/supabase';
 
-@injectable()
 export class SupabaseEmployeeRepository implements IEmployeeRepository {
-  constructor(
-    @inject(TYPES.Logger) private logger: ILogger
-  ) {}
+    private tableName = 'employee_master';
 
-  async getByCode(code: EmployeeCode): Promise<Employee | null> {
-    try {
-      this.logger.info('Fetching employee by code', {
-        employeeCode: code.value
-      });
+    async getById(id: string): Promise<Employee | null> {
+        const { data, error } = await supabase
+            .from(this.tableName)
+            .select('*')
+            .eq('id', id)
+            .single();
 
-      const { data, error } = await supabase
-        .from('employee_master_simple')
-        .select('*')
-        .eq('employee_code', code.value)
-        .single();
+        if (error || !data) return null;
+        return this.mapToEmployee(data);
+    }
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // Not found
-          this.logger.warn('Employee not found', { employeeCode: code.value });
-          return null;
+    async getByEmployeeCode(code: string): Promise<Employee | null> {
+        const { data, error } = await supabase
+            .from(this.tableName)
+            .select('*')
+            .eq('employee_code', code)
+            .single();
+
+        if (error || !data) return null;
+        return this.mapToEmployee(data);
+    }
+
+    async getAll(filter?: EmployeeFilter): Promise<Employee[]> {
+        let query = supabase.from(this.tableName).select('*');
+
+        if (filter?.department) {
+            query = query.eq('department', filter.department);
         }
-        throw error;
-      }
-
-      if (!data) {
-        return null;
-      }
-
-      const employee = EmployeeMapper.toDomain({
-        id: data.id?.toString() || data.employee_code,
-        employee_code: data.employee_code,
-        employee_name: data.employee_name,
-        email: data.email,
-        role: data.role,
-        department: data.department,
-        designation: data.designation,
-        phone: data.phone,
-        join_date: data.join_date,
-        location: data.location
-      });
-
-      this.logger.info('Successfully fetched employee', {
-        employeeCode: code.value
-      });
-
-      return employee;
-    } catch (error) {
-      this.logger.error('Failed to fetch employee by code', error as Error, {
-        employeeCode: code.value
-      });
-      throw error;
-    }
-  }
-
-  async getById(id: string): Promise<Employee | null> {
-    try {
-      this.logger.info('Fetching employee by ID', { id });
-
-      const { data, error } = await supabase
-        .from('employee_master_simple')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          this.logger.warn('Employee not found', { id });
-          return null;
+        if (filter?.role) {
+            query = query.eq('role', filter.role);
         }
-        throw error;
-      }
+        if (filter?.isActive !== undefined) {
+            query = query.eq('is_active', filter.isActive);
+        }
+        if (filter?.search) {
+            query = query.or(`full_name.ilike.%${filter.search}%,employee_code.ilike.%${filter.search}%`);
+        }
 
-      if (!data) {
-        return null;
-      }
+        const { data, error } = await query.order('full_name', { ascending: true });
 
-      const employee = EmployeeMapper.toDomain({
-        id: data.id?.toString() || data.employee_code,
-        employee_code: data.employee_code,
-        employee_name: data.employee_name,
-        email: data.email,
-        role: data.role,
-        department: data.department,
-        designation: data.designation,
-        phone: data.phone,
-        join_date: data.join_date,
-        location: data.location
-      });
-
-      this.logger.info('Successfully fetched employee', { id });
-
-      return employee;
-    } catch (error) {
-      this.logger.error('Failed to fetch employee by ID', error as Error, { id });
-      throw error;
+        if (error || !data) return [];
+        return data.map(this.mapToEmployee);
     }
-  }
 
-  async getAll(): Promise<Employee[]> {
-    try {
-      this.logger.info('Fetching all employees');
+    async create(employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>): Promise<Employee> {
+        const { data, error } = await supabase
+            .from(this.tableName)
+            .insert({
+                employee_code: employee.employeeCode,
+                full_name: employee.fullName,
+                email: employee.email,
+                department: employee.department,
+                role: employee.role,
+                is_active: employee.isActive,
+            })
+            .select()
+            .single();
 
-      const { data, error } = await supabase
-        .from('employee_master_simple')
-        .select('*')
-        .order('employee_name');
-
-      if (error) {
-        throw error;
-      }
-
-      if (!data) {
-        return [];
-      }
-
-      const employees = data.map(record =>
-        EmployeeMapper.toDomain({
-          id: record.id?.toString() || record.employee_code,
-          employee_code: record.employee_code,
-          employee_name: record.employee_name,
-          email: record.email,
-          role: record.role,
-          department: record.department,
-          designation: record.designation,
-          phone: record.phone,
-          join_date: record.join_date,
-          location: record.location
-        })
-      );
-
-      this.logger.info('Successfully fetched all employees', {
-        count: employees.length
-      });
-
-      return employees;
-    } catch (error) {
-      this.logger.error('Failed to fetch all employees', error as Error);
-      throw error;
+        if (error) throw new Error(`Failed to create employee: ${error.message}`);
+        return this.mapToEmployee(data);
     }
-  }
 
-  async save(employee: Employee): Promise<void> {
-    try {
-      this.logger.info('Saving employee', {
-        employeeCode: employee.code.value
-      });
+    async update(id: string, employee: Partial<Employee>): Promise<Employee> {
+        const { data, error } = await supabase
+            .from(this.tableName)
+            .update({
+                ...(employee.fullName && { full_name: employee.fullName }),
+                ...(employee.email && { email: employee.email }),
+                ...(employee.department && { department: employee.department }),
+                ...(employee.role && { role: employee.role }),
+                ...(employee.isActive !== undefined && { is_active: employee.isActive }),
+            })
+            .eq('id', id)
+            .select()
+            .single();
 
-      const record = EmployeeMapper.toDatabase(employee);
-
-      const { error } = await supabase
-        .from('employee_master_simple')
-        .upsert(record);
-
-      if (error) {
-        throw error;
-      }
-
-      this.logger.info('Successfully saved employee', {
-        employeeCode: employee.code.value
-      });
-    } catch (error) {
-      this.logger.error('Failed to save employee', error as Error, {
-        employeeCode: employee.code.value
-      });
-      throw error;
+        if (error) throw new Error(`Failed to update employee: ${error.message}`);
+        return this.mapToEmployee(data);
     }
-  }
+
+    async delete(id: string): Promise<void> {
+        const { error } = await supabase
+            .from(this.tableName)
+            .delete()
+            .eq('id', id);
+
+        if (error) throw new Error(`Failed to delete employee: ${error.message}`);
+    }
+
+    private mapToEmployee(data: any): Employee {
+        return {
+            id: data.id,
+            employeeCode: data.employee_code,
+            fullName: data.full_name,
+            email: data.email,
+            department: data.department,
+            role: data.role,
+            isActive: data.is_active,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+        };
+    }
 }

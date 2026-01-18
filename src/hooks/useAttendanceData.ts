@@ -43,7 +43,7 @@ export function useAttendanceData({
   // Fallback function for direct Supabase queries
   const fetchAttendanceDataFallback = useCallback(async () => {
     if (!employeeCode) {
-      console.error('❌ No employee code provided');
+
       setError('No employee code provided');
       setAttendanceData({});
       setIsLoading(false);
@@ -52,45 +52,39 @@ export function useAttendanceData({
 
     try {
       setError(null);
-      
-      console.log('🔍 Fetching attendance data for employee:', employeeCode);
-      
+
+
+
       // Fetch real attendance data from Supabase using the correct table
+      // OPTIMIZED: Specify only needed columns instead of select('*')
       const { data: punchLogs, error } = await supabase
         .from('employee_raw_logs')
-        .select('*')
+        .select('id, employee_code, log_date, punch_direction, sync_time')
         .eq('employee_code', employeeCode)
         .order('log_date', { ascending: false })
         .limit(1000); // Get last 1000 records
 
-      console.log('📊 Query result:', { 
-        employeeCode, 
-        recordsFound: punchLogs?.length || 0, 
-        error: error?.message,
-        firstRecord: punchLogs?.[0]
-      });
-
       if (error) {
-        console.error('❌ Supabase error:', error);
+
         throw error;
       }
 
       if (!punchLogs || punchLogs.length === 0) {
-        console.warn('⚠️ No attendance data found for employee:', employeeCode);
+
         setAttendanceData({});
         setError(`No attendance data found for employee: ${employeeCode}`);
       } else {
-        console.log('✅ Processing', punchLogs.length, 'punch logs');
+
         // Process real punch logs
         const processedData = processRealPunchLogs(punchLogs, employeeCode);
-        console.log('📅 Processed data:', Object.keys(processedData).length, 'days');
+
         setAttendanceData(processedData);
         setError(null);
       }
-      
+
       setLastUpdate(new Date());
     } catch (err) {
-      console.error('❌ Failed to load attendance data:', err);
+
       setError(`Failed to load attendance data for employee: ${employeeCode}`);
       setAttendanceData({});
     }
@@ -99,21 +93,21 @@ export function useAttendanceData({
   // Main fetch function with better error handling
   const fetchAttendanceData = useCallback(async (isBackgroundUpdate = false, isSilent = false) => {
     if (!employeeCode) {
-      console.error('❌ No employee code provided');
+
       setError('No employee code provided');
       setAttendanceData({});
       setIsLoading(false);
       return;
     }
-    
-    console.log('🚀 fetchAttendanceData called with employeeCode:', employeeCode);
-    
+
+
+
     // Validate employee code
     const employeeValidation = validateEmployeeCode(employeeCode);
-    console.log('✔️ Employee code validation:', employeeValidation);
-    
+
+
     if (!employeeValidation.isValid) {
-      console.error('❌ Validation failed:', employeeValidation.error);
+
       setError(employeeValidation.error || 'Invalid employee code');
       setAttendanceData({});
       setIsLoading(false);
@@ -150,29 +144,29 @@ export function useAttendanceData({
         throw new Error(`Invalid parameters: ${validation.error}`);
       }
 
-      console.log('📞 Calling RPC with params:', validation.data);
-      
+
+
       // Try the new RPC function first
       const { data, error } = await supabase.rpc('process_attendance_logs', validation.data!);
 
-      console.log('📥 RPC response:', { data, error, errorCode: error?.code });
+
 
       if (error && error.code === '42883') {
         // RPC function doesn't exist, fall back to original logic
-        console.warn('⚠️ RPC function not found, using fallback logic');
+
         logger.warn('RPC function not found, using fallback logic', { employeeCode }, 'ATTENDANCE');
         await fetchAttendanceDataFallback();
         return;
       }
 
       if (error) {
-        console.error('❌ RPC error, falling back:', error);
+
         throw error;
       }
 
       const newData = data || {};
       const newDataCount = Object.keys(newData).length;
-      
+
       // Check if new data arrived (not on initial load)
       if (!isLoading && previousDataCount.current > 0 && newDataCount > previousDataCount.current) {
         const newRecordsCount = newDataCount - previousDataCount.current;
@@ -180,7 +174,7 @@ export function useAttendanceData({
           description: `${newRecordsCount} new attendance record${newRecordsCount > 1 ? 's' : ''} added`,
           duration: 5000,
         });
-        
+
         // Show browser notification if supported
         if ('Notification' in window && Notification.permission === 'granted') {
           try {
@@ -196,11 +190,11 @@ export function useAttendanceData({
               });
             }, 100);
           } catch (err) {
-            console.error('Failed to show notification:', err);
+
           }
         }
       }
-      
+
       previousDataCount.current = newDataCount;
       setAttendanceData(newData);
       setLastUpdate(new Date());
@@ -231,7 +225,7 @@ export function useAttendanceData({
     // Set up real-time updates if enabled
     let cleanupRealTime: (() => void) | undefined;
     let fallbackInterval: NodeJS.Timeout | undefined;
-    
+
     if (enableRealTime) {
       try {
         // Set up Supabase real-time subscription
@@ -252,7 +246,7 @@ export function useAttendanceData({
             }
           )
           .subscribe();
-        
+
         cleanupRealTime = () => {
           supabase.removeChannel(channel);
         };
@@ -303,7 +297,7 @@ interface RawPunchLog {
 
 function processRealPunchLogs(punchLogs: RawPunchLog[], employeeCode: string): Record<string, ProcessedDayData> {
   const data: Record<string, ProcessedDayData> = {};
-  
+
   // Group punch logs by date
   const logsByDate: Record<string, Array<{
     time: string;
@@ -312,17 +306,17 @@ function processRealPunchLogs(punchLogs: RawPunchLog[], employeeCode: string): R
     confidence: 'high' | 'medium' | 'low';
     inferred: boolean;
   }>> = {};
-  
+
   punchLogs.forEach(log => {
     const date = new Date(log.log_date).toISOString().split('T')[0];
     if (!logsByDate[date]) {
       logsByDate[date] = [];
     }
     logsByDate[date].push({
-      time: new Date(log.log_date).toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      time: new Date(log.log_date).toLocaleTimeString('en-US', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit'
       }),
       direction: log.punch_direction as 'in' | 'out' | 'break',
       deviceId: 'device-1', // No serial_number in table
@@ -330,19 +324,19 @@ function processRealPunchLogs(punchLogs: RawPunchLog[], employeeCode: string): R
       inferred: false
     });
   });
-  
+
   // Process each date
   Object.entries(logsByDate).forEach(([date, logs]) => {
     // Sort logs by time
     logs.sort((a, b) => a.time.localeCompare(b.time));
-    
+
     // Find check-in and check-out
     const inLogs = logs.filter(log => log.direction === 'in');
     const outLogs = logs.filter(log => log.direction === 'out');
-    
+
     const checkIn = inLogs.length > 0 ? inLogs[0].time : undefined;
     const checkOut = outLogs.length > 0 ? outLogs[outLogs.length - 1].time : undefined;
-    
+
     // Calculate status
     let status: 'present' | 'late' | 'absent' = 'present';
     if (!checkIn) {
@@ -350,7 +344,7 @@ function processRealPunchLogs(punchLogs: RawPunchLog[], employeeCode: string): R
     } else if (checkIn > '09:00') {
       status = 'late';
     }
-    
+
     // Calculate total hours
     let totalHours = '0:00';
     if (checkIn && checkOut) {
@@ -361,7 +355,7 @@ function processRealPunchLogs(punchLogs: RawPunchLog[], employeeCode: string): R
       const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
       totalHours = `${diffHours}:${diffMinutes.toString().padStart(2, '0')}`;
     }
-    
+
     // Create intervals
     const intervals = [];
     if (checkIn && checkOut) {
@@ -372,7 +366,7 @@ function processRealPunchLogs(punchLogs: RawPunchLog[], employeeCode: string): R
         type: 'work' as const
       });
     }
-    
+
     data[date] = {
       date,
       status,
@@ -385,7 +379,7 @@ function processRealPunchLogs(punchLogs: RawPunchLog[], employeeCode: string): R
       punchLogs: logs
     };
   });
-  
+
   return data;
 }
 

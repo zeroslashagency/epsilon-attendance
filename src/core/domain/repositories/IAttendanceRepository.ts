@@ -1,39 +1,30 @@
 /**
- * Repository Interface: IAttendanceRepository
- * Defines the contract for attendance data access
- * Infrastructure layer will implement this
+ * Attendance Repository Interface
+ * Domain repository for attendance operations
  */
-import { Attendance } from '../entities/Attendance';
-import { EmployeeCode } from '../value-objects/EmployeeCode';
-import { DateRange } from '../value-objects/DateRange';
+export interface AttendanceRecord {
+    id: string;
+    employeeId: string;
+    date: string;
+    checkIn?: string;
+    checkOut?: string;
+    status: 'present' | 'absent' | 'late' | 'half-day' | 'leave';
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface AttendanceFilter {
+    startDate?: string;
+    endDate?: string;
+    employeeId?: string;
+    status?: AttendanceRecord['status'];
+}
 
 export interface IAttendanceRepository {
-  /**
-   * Get attendance records for an employee within a date range
-   */
-  getByEmployeeCode(
-    employeeCode: EmployeeCode,
-    dateRange: DateRange
-  ): Promise<Attendance[]>;
-
-  /**
-   * Get attendance for a specific date
-   */
-  getByDate(
-    employeeCode: EmployeeCode,
-    date: Date
-  ): Promise<Attendance | null>;
-
-  /**
-   * Save attendance record
-   */
-  save(attendance: Attendance): Promise<void>;
-
-  /**
-   * Subscribe to real-time attendance updates
-   */
-  subscribeToUpdates(
-    employeeCode: EmployeeCode,
-    callback: (attendance: Attendance) => void
-  ): () => void;
+    getById(id: string): Promise<AttendanceRecord | null>;
+    getAll(filter?: AttendanceFilter): Promise<AttendanceRecord[]>;
+    getByEmployeeId(employeeId: string, filter?: AttendanceFilter): Promise<AttendanceRecord[]>;
+    create(record: Omit<AttendanceRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<AttendanceRecord>;
+    update(id: string, record: Partial<AttendanceRecord>): Promise<AttendanceRecord>;
+    delete(id: string): Promise<void>;
 }

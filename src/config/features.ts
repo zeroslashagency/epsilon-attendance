@@ -9,34 +9,46 @@ export const FEATURE_FLAGS = {
     description: 'Real-time attendance tracking and dashboard'
   },
   overview: {
-    enabled: true, // Overview is now enabled
+    enabled: false, // Moved to Attendance page as tab
     name: 'Overview',
     path: '/overview',
     description: 'Advanced dashboard with comprehensive analytics'
   },
   calendar: {
-    enabled: true, // Calendar enabled with real data
+    enabled: false, // Moved to Attendance page as tab
     name: 'Calendar',
     path: '/calendar',
     description: 'Interactive calendar view with detailed attendance patterns'
   },
+  operations: {
+    enabled: true, // New Operations section with FIR, Reports, History
+    name: 'Operations',
+    path: '/operations',
+    description: 'FIR Dashboard, Reports, and Analytics'
+  },
   reports: {
-    enabled: true, // Reports enabled
+    enabled: false, // Moved inside Operations
     name: 'Reports',
     path: '/reports',
     description: 'Comprehensive reporting system with custom filters'
   },
   callHistory: {
-    enabled: true, // Call History enabled
+    enabled: false, // Moved inside Operations as History
     name: 'History',
     path: '/history',
     description: 'View and manage call logs and history'
   },
   fir: {
-    enabled: true,
+    enabled: false, // Moved inside Operations
     name: 'FIR',
     path: '/fir',
     description: 'Mistake Reporting System'
+  },
+  callRecordings: {
+    enabled: true,
+    name: 'Calls',
+    path: '/call-recordings',
+    description: 'Call recordings dashboard with real-time monitoring'
   }
 } as const;
 
@@ -60,5 +72,3 @@ export function getNavigationTabs() {
     description: feature.description
   }));
 }
-
-

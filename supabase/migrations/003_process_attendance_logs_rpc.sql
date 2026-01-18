@@ -8,6 +8,17 @@ AS $$
 DECLARE
     result JSON;
 BEGIN
+    -- Security Check: Ensure authenticated user owns the requested employee_code
+    IF NOT EXISTS (
+        SELECT 1 FROM profiles p
+        WHERE p.id = auth.uid() AND p.employee_code = p_employee_code
+        UNION 
+        SELECT 1 FROM employee_auth_mapping eam 
+        WHERE eam.auth_user_id = auth.uid() AND eam.employee_code = p_employee_code
+    ) THEN
+        RAISE EXCEPTION 'Unauthorized: Access denied for this employee code.';
+    END IF;
+
     WITH daily_logs AS (
         SELECT
             log_date::date AS attendance_date,
@@ -15,8 +26,8 @@ BEGIN
             MAX(CASE WHEN punch_direction = 'out' THEN log_date END) AS check_out
         FROM employee_raw_logs
         WHERE employee_code = p_employee_code
-          AND log_date::date >= p_start_date
-          AND log_date::date <= p_end_date
+          AND log_date >= p_start_date::timestamp
+          AND log_date < (p_end_date + INTERVAL '1 day')::timestamp
         GROUP BY log_date::date
     )
     SELECT json_object_agg(
