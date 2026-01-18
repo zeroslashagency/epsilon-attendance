@@ -4,6 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import '../providers/attendance_provider.dart';
 import '../models/attendance_model.dart';
+import '../utils/app_palette.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -17,10 +18,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  // Dark Aubergine/Purple Color
-  final Color _darkPurple = const Color(0xFF2D2135);
-  // Orange Accent
-  final Color _orangeAccent = const Color(0xFFF2994A);
+  // Dark Aubergine/Purple Color -> Deep Blue Base
+  final Color _darkPurple = AppPalette.primaryDark;
+  // Light Blue Accent
+  final Color _blueAccent = AppPalette.accentCyan;
+  // Orange Accent for Late Status
+  final Color _orangeAccent = AppPalette.accentOrange;
 
   @override
   void initState() {
@@ -93,7 +96,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         shape: BoxShape.circle,
                       ),
                       selectedDecoration: BoxDecoration(
-                        color: _orangeAccent,
+                        color: _blueAccent,
                         shape: BoxShape.circle,
                       ),
                       selectedTextStyle: const TextStyle(
@@ -101,7 +104,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                       markerDecoration: BoxDecoration(
-                        color: _orangeAccent,
+                        color: _blueAccent,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -152,7 +155,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           margin: const EdgeInsets.all(6.0),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: _orangeAccent,
+                            color: _blueAccent,
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                           ),
@@ -298,14 +301,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         context,
                       ).scaffoldBackgroundColor, // Use background color
                       shape: BoxShape.circle,
-                      border: Border.all(color: _orangeAccent, width: 2),
+                      border: Border.all(color: _blueAccent, width: 2),
                     ),
                     child: Center(
                       child: Container(
                         width: 10,
                         height: 10,
                         decoration: BoxDecoration(
-                          color: _orangeAccent.withValues(alpha: 0.5),
+                          color: _blueAccent.withValues(alpha: 0.5),
                           shape: BoxShape.circle,
                         ),
                       ),

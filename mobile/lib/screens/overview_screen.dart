@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:google_fonts/google_fonts.dart'; // Ensure this is added
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart';
 import '../providers/attendance_provider.dart';
+import '../providers/auth_provider.dart';
 
 class OverviewScreen extends StatelessWidget {
   const OverviewScreen({super.key});
@@ -11,351 +13,558 @@ class OverviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final attendanceProvider = Provider.of<AttendanceProvider>(context);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final authProvider = Provider.of<AuthProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Palette (Clean/Premium Theme)
-    final bgBase = isDark ? const Color(0xFF050505) : const Color(0xFFF9FAFB);
-    final accentGreen = const Color(0xFF34D399); // Soft Emerald
-    final accentBlue = const Color(0xFF38BDF8); // Sky Blue
-    final accentPink = const Color(0xFFFB7185); // Rose
-    final textMain = isDark ? Colors.white : const Color(0xFF111827);
-    final textSub = isDark ? Colors.white54 : Colors.grey.shade600;
+    // Theme-aware colors
+    // Theme-aware colors derived from global theme
+    final bgBase = Theme.of(context).scaffoldBackgroundColor;
+    final cardBg = Theme.of(context).cardColor;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Accents now pull from the global theme's colorScheme or AppPalette directly if needed
+    final accentGreen = colorScheme.secondary;
+    final accentCyan = colorScheme.primary;
+
+    final textPrimary =
+        Theme.of(context).textTheme.bodyLarge?.color ?? Colors.white;
+    final textSecondary =
+        Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey.shade400;
+
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.05);
 
     return Scaffold(
       backgroundColor: bgBase,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              // Header Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "OVERVIEW",
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: textSub,
-                      letterSpacing: 2,
-                      fontWeight: FontWeight.w600,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _getGreeting(),
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          color: textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ).animate().fadeIn().slideX(),
+                      Text(
+                        authProvider.employeeName?.split(' ').first ??
+                            'Employee',
+                        style: GoogleFonts.outfit(
+                          fontSize: 28,
+                          color: textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ).animate().fadeIn(delay: 100.ms).slideX(),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: borderColor),
                     ),
-                  ).animate().fadeIn().slideX(),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Dashboard",
-                    style: GoogleFonts.inter(
-                      fontSize: 32,
-                      color: textMain,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -1,
+                    child: CircleAvatar(
+                      radius: 24,
+                      backgroundColor: cardBg,
+                      child: Text(
+                        (authProvider.employeeName ?? 'U')[0],
+                        style: GoogleFonts.outfit(
+                          color: textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ).animate().fadeIn(delay: 200.ms),
+                  ).animate().scale(delay: 200.ms),
                 ],
               ),
+
+              const SizedBox(height: 8),
+              Text(
+                DateFormat('MMMM d, yyyy').format(DateTime.now()),
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  color: textSecondary.withValues(alpha: 0.7),
+                  letterSpacing: 0.5,
+                ),
+              ).animate().fadeIn(delay: 150.ms),
+
               const SizedBox(height: 32),
 
-              // BENTO GRID LAYOUT
-              // Row 1: Pulse Chart (Large) + Efficiency (Small)
-              SizedBox(
-                height: 240, // Slightly taller for cleaner layout
-                child: Row(
+              // Hero Attendance Card
+              Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [
+                            const Color(0xFF2A2D35).withValues(alpha: 0.9),
+                            const Color(0xFF1F2228).withValues(alpha: 0.95),
+                          ]
+                        : [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)],
+                  ),
+                  border: Border.all(color: borderColor, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.3)
+                          : Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                    BoxShadow(
+                      color: accentGreen.withValues(alpha: isDark ? 0.05 : 0.1),
+                      blurRadius: 30,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
+                ),
+                child: Stack(
                   children: [
-                    // Attendance Pulse (2/3 width)
-                    Expanded(
-                      flex: 2,
-                      child: _GlassCard(
-                        isDark: isDark,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Attendance Rate",
-                              style: GoogleFonts.inter(
-                                color: textSub,
-                                fontSize: 13, // Standard readable size
-                                fontWeight: FontWeight.w500,
+                    // Background Glow
+                    Positioned(
+                      right: -50,
+                      top: -50,
+                      child:
+                          Container(
+                                width: 150,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: accentGreen.withValues(
+                                    alpha: isDark ? 0.15 : 0.2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: accentGreen.withValues(
+                                        alpha: isDark ? 0.3 : 0.15,
+                                      ),
+                                      blurRadius: 50,
+                                      spreadRadius: 10,
+                                    ),
+                                  ],
+                                ),
+                              )
+                              .animate(
+                                onPlay: (controller) =>
+                                    controller.repeat(reverse: true),
+                              )
+                              .scale(
+                                duration: 3.seconds,
+                                begin: const Offset(1, 1),
+                                end: const Offset(1.2, 1.2),
                               ),
-                            ),
-                            const Spacer(),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     "${attendanceProvider.attendanceRate.toStringAsFixed(0)}%",
-                                    style: GoogleFonts.inter(
-                                      fontSize: 42, // Big clean number
-                                      color: textMain,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: -2,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 44,
+                                      fontWeight: FontWeight.bold,
+                                      color: textPrimary,
+                                      height: 1.0,
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: accentGreen.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      attendanceProvider.attendanceRate >= 90
-                                          ? "Exemplary"
-                                          : "Good",
-                                      style: GoogleFonts.inter(
-                                        color: accentGreen,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                  ).animate().fadeIn().scale(),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Attendance Rate",
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 14,
+                                      color: textSecondary,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(height: 20),
-                            // Line Chart Area
-                            Expanded(
-                              flex: 2,
-                              child: _PulseChart(
-                                activity: attendanceProvider.monthlyActivity
-                                    .map((e) => e.toDouble())
-                                    .toList(),
-                                color: accentGreen,
-                                isDark: isDark,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ).animate().scale(delay: 100.ms, duration: 400.ms),
-                    ),
-                    const SizedBox(width: 16),
-                    // On Time (1/3 width)
-                    Expanded(
-                      flex: 1,
-                      child: _GlassCard(
-                        isDark: isDark,
-                        // No colored BG, just clean
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "On Time",
-                              style: GoogleFonts.inter(
-                                color: textSub,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Expanded(
-                              child: Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        SizedBox(
-                                          height: 80,
-                                          width: 80,
-                                          child: CircularProgressIndicator(
-                                            value:
-                                                attendanceProvider.totalDays > 0
-                                                ? attendanceProvider
-                                                          .onTimeCount /
-                                                      attendanceProvider
-                                                          .totalDays
-                                                : 0,
-                                            backgroundColor: isDark
-                                                ? Colors.grey.shade800
-                                                : Colors.grey.shade200,
-                                            color: accentBlue,
-                                            strokeWidth: 8,
-                                            strokeCap: StrokeCap.round,
-                                          ),
-                                        ),
-                                        Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.bolt_rounded,
-                                              color: accentBlue,
-                                              size: 28,
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      "${attendanceProvider.onTimeCount}",
-                                      style: GoogleFonts.inter(
-                                        fontSize: 28,
-                                        color: textMain,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: -1,
-                                      ),
-                                    ),
-                                  ],
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
                                 ),
-                              ),
+                                decoration: BoxDecoration(
+                                  color: accentGreen.withValues(
+                                    alpha: isDark ? 0.15 : 0.2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: accentGreen.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  attendanceProvider.attendanceRate >= 90
+                                      ? 'Exemplary'
+                                      : 'Good',
+                                  style: GoogleFonts.outfit(
+                                    color: accentGreen,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ).animate().slideX(begin: 1).fadeIn(),
+                            ],
+                          ),
+                          const Spacer(),
+                          // Chart
+                          SizedBox(
+                            height: 60,
+                            child: _PulseChart(
+                              activity: attendanceProvider.monthlyActivity
+                                  .map((e) => e.toDouble())
+                                  .toList(),
+                              color: accentGreen,
                             ),
-                          ],
-                        ),
-                      ).animate().scale(delay: 200.ms, duration: 450.ms),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
+              ).animate().slideY(
+                begin: 0.2,
+                duration: 600.ms,
+                curve: Curves.easeOutQuint,
               ),
 
               const SizedBox(height: 16),
 
-              // Row 2: Heatmap (Full Width)
-              _GlassCard(
-                    isDark: isDark,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Activity History",
-                              style: GoogleFonts.inter(
-                                color: textSub,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            // Legend
-                            Row(
-                              children: [
-                                _LegendDot(
-                                  color: isDark
-                                      ? const Color(0xFF2C2C2E)
-                                      : Colors.grey.shade300,
-                                  label: "Off",
-                                ),
-                                const SizedBox(width: 12),
-                                _LegendDot(color: accentPink, label: "Late"),
-                                const SizedBox(width: 12),
-                                _LegendDot(
-                                  color: accentGreen,
-                                  label: "Present",
+              // Middle Row: On Time & Work Hours
+              Row(
+                children: [
+                  // On Time Card
+                  Expanded(
+                    child: Container(
+                      height: 140,
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: borderColor),
+                        boxShadow: isDark
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "On Time",
+                            style: GoogleFonts.outfit(
+                              color: textSecondary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        _HeatmapGrid(
-                          activity: attendanceProvider.monthlyActivity
-                              .map((e) => e.toDouble())
-                              .toList(),
-                          accentGreen: accentGreen,
-                          accentPink: accentPink,
-                          baseColor: isDark
-                              ? const Color(0xFF2C2C2E)
-                              : Colors.grey.shade300,
-                        ),
-                      ],
-                    ),
-                  )
-                  .animate()
-                  .fadeIn(delay: 300.ms)
-                  .slideY(begin: 0.1, end: 0, duration: 500.ms),
+                          ),
+                          const Spacer(),
+                          Center(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SizedBox(
+                                  height: 60,
+                                  width: 60,
+                                  child: CircularProgressIndicator(
+                                    value: attendanceProvider.totalDays > 0
+                                        ? attendanceProvider.onTimeCount /
+                                              attendanceProvider.totalDays
+                                        : 0,
+                                    backgroundColor: isDark
+                                        ? bgBase
+                                        : Colors.grey.shade200,
+                                    color: accentCyan,
+                                    strokeWidth: 6,
+                                    strokeCap: StrokeCap.round,
+                                  ),
+                                ),
+                                Icon(
+                                      Icons.bolt_rounded,
+                                      color: accentCyan,
+                                      size: 24,
+                                    )
+                                    .animate(
+                                      onPlay: (controller) =>
+                                          controller.repeat(reverse: true),
+                                    )
+                                    .scale(
+                                      duration: 1.seconds,
+                                      begin: const Offset(1, 1),
+                                      end: const Offset(1.15, 1.15),
+                                    ),
+                              ],
+                            ),
+                          ),
+                          const Spacer(),
+                          Center(
+                            child: Text(
+                              "${attendanceProvider.onTimeCount} Days",
+                              style: GoogleFonts.outfit(
+                                color: accentCyan,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ).animate(delay: 200.ms).scale(),
+                  ),
+                  const SizedBox(width: 12),
 
-              const SizedBox(height: 16),
-
-              // Row 3: Detail Grid (2x2)
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.6, // Wider cards
-                children: [
-                  _StatTile(
-                    label: "Work Hours",
-                    value: attendanceProvider.avgWorkHours,
-                    icon: Icons.access_time_filled,
-                    color: Colors.purpleAccent,
-                    isDark: isDark,
-                  ),
-                  _StatTile(
-                    label: "Overtime",
-                    value: attendanceProvider.overtimeHours,
-                    icon: Icons.timer,
-                    color: Colors.amber,
-                    isDark: isDark,
-                  ),
-                  _StatTile(
-                    label: "Late Days",
-                    value: "${attendanceProvider.lateCount}",
-                    icon: Icons.warning_rounded,
-                    color: accentPink,
-                    isDark: isDark,
-                  ),
-                  _StatTile(
-                    label: "Total Days",
-                    value: "${attendanceProvider.totalDays}",
-                    icon: Icons.calendar_today,
-                    color: Colors.blueGrey,
-                    isDark: isDark,
+                  // Work Hours Card
+                  Expanded(
+                    child: Container(
+                      height: 140,
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: borderColor),
+                        boxShadow: isDark
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Work Hours",
+                            style: GoogleFonts.outfit(
+                              color: textSecondary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            attendanceProvider.avgWorkHours,
+                            style: GoogleFonts.outfit(
+                              color: textPrimary,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ).animate().fadeIn(),
+                          const Spacer(),
+                          // Mini Bar Chart representation
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [24, 36, 22, 42, 32].map((h) {
+                              return Container(
+                                width: 6,
+                                height: h.toDouble(),
+                                decoration: BoxDecoration(
+                                  color: accentCyan.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ).animate(delay: 300.ms).scale(),
                   ),
                 ],
               ),
-              const SizedBox(height: 40),
+
+              const SizedBox(height: 16),
+
+              // Activity History Heatmap
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: borderColor),
+                  boxShadow: isDark
+                      ? []
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Activity History",
+                          style: GoogleFonts.outfit(
+                            color: textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Icon(
+                          Icons.calendar_month_rounded,
+                          color: textSecondary,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Heatmap Grid
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final cellSize = (constraints.maxWidth - 56) / 8;
+                        return Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: List.generate(30, (index) {
+                            double val = 0;
+                            if (index <
+                                attendanceProvider.monthlyActivity.length) {
+                              val = attendanceProvider.monthlyActivity[index]
+                                  .toDouble();
+                            }
+
+                            Color dotColor = isDark
+                                ? const Color(0xFF2C2C2E)
+                                : Colors.grey.shade200;
+                            if (val == 2) dotColor = accentGreen;
+                            if (val == 1) dotColor = Colors.redAccent;
+
+                            return Container(
+                              width: cellSize,
+                              height: cellSize,
+                              decoration: BoxDecoration(
+                                color: dotColor,
+                                borderRadius: BorderRadius.circular(5),
+                                boxShadow: val > 0
+                                    ? [
+                                        BoxShadow(
+                                          color: dotColor.withValues(
+                                            alpha: 0.4,
+                                          ),
+                                          blurRadius: 4,
+                                          spreadRadius: 0,
+                                        ),
+                                      ]
+                                    : [],
+                              ),
+                            ).animate(delay: (index * 20).ms).fadeIn().scale();
+                          }),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    // Legend
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        _LegendDot(
+                          color: isDark
+                              ? const Color(0xFF2C2C2E)
+                              : Colors.grey.shade200,
+                          label: "Off",
+                          textColor: textSecondary,
+                        ),
+                        const SizedBox(width: 10),
+                        _LegendDot(
+                          color: Colors.redAccent,
+                          label: "Late",
+                          textColor: textSecondary,
+                        ),
+                        const SizedBox(width: 10),
+                        _LegendDot(
+                          color: accentGreen,
+                          label: "Present",
+                          textColor: textSecondary,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ).animate(delay: 400.ms).slideY(begin: 0.1).fadeIn(),
+
+              const SizedBox(height: 100),
             ],
           ),
         ),
       ),
     );
   }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning,';
+    if (hour < 17) return 'Good Afternoon,';
+    return 'Good Evening,';
+  }
 }
 
-// --- SUB WIDGETS ---
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+  final Color textColor;
 
-class _GlassCard extends StatelessWidget {
-  final Widget child;
-  final bool isDark;
-
-  const _GlassCard({required this.child, required this.isDark});
+  const _LegendDot({
+    required this.color,
+    required this.label,
+    required this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: (isDark
-            ? const Color(0xFF141416).withValues(alpha: 0.8)
-            : Colors.white),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: (isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.grey.shade200),
-          width: 1,
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.2)
-                : Colors.grey.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: GoogleFonts.outfit(
+            fontSize: 11,
+            color: textColor,
+            fontWeight: FontWeight.w500,
           ),
-        ],
-      ),
-      child: child,
+        ),
+      ],
     );
   }
 }
@@ -363,24 +572,21 @@ class _GlassCard extends StatelessWidget {
 class _PulseChart extends StatelessWidget {
   final List<double> activity;
   final Color color;
-  final bool isDark;
 
-  const _PulseChart({
-    required this.activity,
-    required this.color,
-    required this.isDark,
-  });
+  const _PulseChart({required this.activity, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    // Generate synthetic smooth data logic just for visual "Pulse" effect
-    // We'll map 0->0, 1->0.5, 2->1 for the Y axis
     final spots = activity.asMap().entries.map((e) {
       double y = 0;
-      if (e.value == 1) y = 1; // Late
-      if (e.value == 2) y = 2; // Present
+      if (e.value >= 1) y = e.value.toDouble();
       return FlSpot(e.key.toDouble(), y);
     }).toList();
+
+    if (spots.isEmpty) {
+      spots.add(const FlSpot(0, 0));
+      spots.add(const FlSpot(10, 0));
+    }
 
     return LineChart(
       LineChartData(
@@ -393,7 +599,8 @@ class _PulseChart extends StatelessWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            curveSmoothness: 0.35, // Smoother curve
+            curveSmoothness: 0.4,
+            preventCurveOverShooting: true,
             color: color,
             barWidth: 3,
             isStrokeCapRound: true,
@@ -402,7 +609,7 @@ class _PulseChart extends StatelessWidget {
               show: true,
               gradient: LinearGradient(
                 colors: [
-                  color.withValues(alpha: 0.2),
+                  color.withValues(alpha: 0.25),
                   color.withValues(alpha: 0.0),
                 ],
                 begin: Alignment.topCenter,
@@ -413,149 +620,5 @@ class _PulseChart extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class _HeatmapGrid extends StatelessWidget {
-  final List<double> activity;
-  final Color accentGreen;
-  final Color accentPink;
-  final Color baseColor;
-
-  const _HeatmapGrid({
-    required this.activity,
-    required this.accentGreen,
-    required this.accentPink,
-    required this.baseColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Display last 28 days (4 weeks) for perfect grid (7 columns x 4 rows? No, 7 days x 4 weeks)
-    // Actually typically horizontal scroll or fixed rows.
-    // Let's do 7 columns (days) logic. Or just a wrap.
-    // Design screenshot shows dots.
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 10, // 10 dots per row
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-      ),
-      itemCount: 30, // Limit to 30 dots
-      itemBuilder: (context, index) {
-        // Handle index out of range if activity < 30
-        double val = 0;
-        if (index < activity.length) {
-          val = activity[index];
-        }
-
-        Color color = baseColor;
-        if (val == 2) color = accentGreen;
-        if (val == 1) color = accentPink;
-
-        return AnimatedContainer(
-          duration: 600.ms,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(6), // Slightly softer square
-            boxShadow: val > 0
-                ? [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.5),
-                      blurRadius: 6,
-                      spreadRadius: 1,
-                    ),
-                  ]
-                : null,
-          ),
-        ).animate(delay: (index * 20).ms).fadeIn(); // Staggered fade in
-      },
-    );
-  }
-}
-
-class _LegendDot extends StatelessWidget {
-  final Color color;
-  final String label;
-
-  const _LegendDot({required this.color, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            color: Colors.grey.shade500,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatTile extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-  final bool isDark;
-
-  const _StatTile({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-    required this.isDark,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textMain = isDark ? Colors.white : const Color(0xFF111827);
-
-    return _GlassCard(
-      isDark: isDark,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
-                  fontSize: 12, // Subtitle size
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Icon(icon, color: color, size: 18),
-            ],
-          ),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              color: textMain,
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-              letterSpacing: -0.5,
-            ),
-          ),
-        ],
-      ),
-    ).animate().scale(duration: 400.ms, curve: Curves.easeOut);
   }
 }

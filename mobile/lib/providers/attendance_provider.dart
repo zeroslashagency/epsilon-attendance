@@ -4,6 +4,23 @@ import '../models/attendance_model.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+/// Manages attendance data and statistics for the mobile application.
+///
+/// This provider fetches attendance logs from Supabase, processes them into
+/// daily records, and calculates various statistics including:
+/// - Attendance rate (percentage of on-time + late days)
+/// - Average check-in/check-out times
+/// - Work hours and overtime tracking
+/// - Monthly activity heatmap data
+///
+/// Usage:
+/// ```dart
+/// final provider = Provider.of<AttendanceProvider>(context);
+/// await provider.fetchAttendanceData(employeeCode);
+/// print(provider.attendanceRate); // 95.5
+/// ```
+///
+/// Also handles local notifications for attendance events.
 class AttendanceProvider with ChangeNotifier {
   Map<String, ProcessedDayData> _attendanceData = {};
   bool _isLoading = false;
@@ -23,21 +40,43 @@ class AttendanceProvider with ChangeNotifier {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  /// Returns the processed attendance data indexed by date string (yyyy-MM-dd).
   Map<String, ProcessedDayData> get attendanceData => _attendanceData;
+
+  /// Whether attendance data is currently being fetched.
   bool get isLoading => _isLoading;
+
+  /// Error message if the last fetch operation failed.
   String? get error => _error;
 
+  /// Total days with attendance data.
   int get totalDays => _totalDays;
+
+  /// Percentage of days the employee was present (on-time or late).
   double get attendanceRate => _attendanceRate;
+
+  /// Number of days the employee checked in on time.
   int get onTimeCount => _onTimeCount;
+
+  /// Number of days the employee was late.
   int get lateCount => _lateCount;
+
+  /// Average check-in time formatted as HH:mm.
   String get avgCheckIn => _avgCheckIn;
+
+  /// Average check-out time formatted as HH:mm.
   String get avgCheckOut => _avgCheckOut;
+
+  /// Average work hours per day formatted as 'Xh Ym'.
   String get avgWorkHours => _avgWorkHours;
+
+  /// Total overtime hours formatted as 'Xh Ym'.
   String get overtimeHours => _overtimeHours;
+
+  /// Monthly activity data for heatmap visualization (0: absent, 1: present).
   List<int> get monthlyActivity => _monthlyActivity;
 
-  // Getters for UI
+  /// Returns today's attendance data, or null if not available.
   ProcessedDayData? get todayData {
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
     return _attendanceData[today];
@@ -107,7 +146,10 @@ class AttendanceProvider with ChangeNotifier {
   }
 
   AttendanceProvider() {
-    _initNotifications();
+    // Defer notification initialization to after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initNotifications();
+    });
   }
 
   Future<void> _initNotifications() async {
@@ -131,15 +173,32 @@ class AttendanceProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final data = await Supabase.instance.client
-          .from('employee_raw_logs')
-          .select()
-          .eq('employee_code', employeeCode)
-          .order('log_date', ascending: false)
-          .limit(1000);
+      final now = DateTime.now();
+      // Fetch last 4 months to cover recent history and current month
+      final startDate = now.subtract(const Duration(days: 120));
+      final endDate = now.add(const Duration(days: 1));
 
-      final List<dynamic> rawLogs = data;
-      _attendanceData = _processRealPunchLogs(rawLogs);
+      final params = {
+        'p_employee_code': employeeCode,
+        'p_start_date': DateFormat('yyyy-MM-dd').format(startDate),
+        'p_end_date': DateFormat('yyyy-MM-dd').format(endDate),
+      };
+
+      final response = await Supabase.instance.client.rpc(
+        'process_attendance_logs',
+        params: params,
+      );
+
+      final Map<String, dynamic> jsonResponse =
+          response as Map<String, dynamic>;
+
+      _attendanceData = {};
+      jsonResponse.forEach((date, data) {
+        _attendanceData[date] = ProcessedDayData.fromJson(
+          data as Map<String, dynamic>,
+        );
+      });
+
       _calculateStats();
 
       _setupRealtimeSubscription(employeeCode);
@@ -314,98 +373,5 @@ class AttendanceProvider with ChangeNotifier {
       android: androidPlatformChannelSpecifics,
     );
     await _notificationsPlugin.show(0, title, body, platformChannelSpecifics);
-  }
-
-  Map<String, ProcessedDayData> _processRealPunchLogs(List<dynamic> punchLogs) {
-    final Map<String, ProcessedDayData> data = {};
-    final Map<String, List<PunchLog>> logsByDate = {};
-
-    // Group logs by date
-    for (var log in punchLogs) {
-      final dateTime = DateTime.parse(log['log_date']);
-      final dateStr = DateFormat('yyyy-MM-dd').format(dateTime);
-
-      if (!logsByDate.containsKey(dateStr)) {
-        logsByDate[dateStr] = [];
-      }
-
-      logsByDate[dateStr]!.add(
-        PunchLog(
-          time: DateFormat('HH:mm').format(dateTime),
-          direction: (log['punch_direction'] as String).toLowerCase(),
-          deviceId: 'device-1',
-          confidence: 'high',
-          inferred: false,
-        ),
-      );
-    }
-
-    // Process each date
-    logsByDate.forEach((date, logs) {
-      // Sort logs by time
-      logs.sort((a, b) => a.time.compareTo(b.time));
-
-      final inLogs = logs.where((l) => l.direction == 'in').toList();
-      final outLogs = logs.where((l) => l.direction == 'out').toList();
-
-      String? checkIn = inLogs.isNotEmpty ? inLogs.first.time : null;
-      String? checkOut = outLogs.isNotEmpty ? outLogs.last.time : null;
-
-      // Calculate status
-      String status = 'present';
-      if (checkIn == null) {
-        status = 'absent';
-      } else if (checkIn.compareTo('09:00') > 0) {
-        status = 'late';
-      }
-
-      // Calculate total hours using First and Last punch
-      String totalHours = '0:00';
-      List<AttendanceInterval> intervals = [];
-
-      if (logs.isNotEmpty) {
-        // Always take the first punch as Check In
-        final firstPunch = logs.first;
-        checkIn = firstPunch.time;
-
-        // If there are multiple punches, take the last one as Check Out
-        if (logs.length > 1) {
-          final lastPunch = logs.last;
-          checkOut = lastPunch.time;
-
-          final inTime = DateFormat('HH:mm').parse(checkIn);
-          final outTime = DateFormat('HH:mm').parse(checkOut);
-
-          final diff = outTime.difference(inTime);
-          final hours = diff.inHours;
-          final minutes = diff.inMinutes.remainder(60);
-
-          totalHours = '$hours:${minutes.toString().padLeft(2, '0')}';
-
-          intervals.add(
-            AttendanceInterval(
-              checkIn: checkIn,
-              checkOut: checkOut,
-              duration: totalHours,
-              type: 'work',
-            ),
-          );
-        }
-      }
-
-      data[date] = ProcessedDayData(
-        date: date,
-        status: status,
-        checkIn: checkIn,
-        checkOut: checkOut,
-        totalHours: totalHours,
-        confidence: 'high',
-        hasAmbiguousPunches: false,
-        intervals: intervals,
-        punchLogs: logs,
-      );
-    });
-
-    return data;
   }
 }

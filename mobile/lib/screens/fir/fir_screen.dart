@@ -5,16 +5,7 @@ import 'tabs/fir_overview_tab.dart';
 import 'tabs/fir_reports_tab.dart';
 import 'create_fir_screen.dart';
 
-class FirAnalyticsTab extends StatelessWidget {
-  const FirAnalyticsTab({super.key});
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Text(
-      "Analytics Coming Soon",
-      style: GoogleFonts.inter(color: Colors.white),
-    ),
-  );
-}
+import 'tabs/fir_analytics_tab.dart';
 
 class FirScreen extends StatefulWidget {
   const FirScreen({super.key});

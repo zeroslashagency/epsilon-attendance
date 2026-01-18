@@ -2,24 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'utils/app_palette.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/attendance_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/fir_provider.dart';
+import 'providers/call_recording_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/splash_screen.dart';
 import 'screens/intro_video_screen.dart';
 
+import 'utils/secure_storage.dart';
+
+// ... imports
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
   await Supabase.initialize(
-    url: 'https://sxnaopzgaddvziplrlbe.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4bmFvcHpnYWRkdnppcGxybGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY2MjUyODQsImV4cCI6MjA3MjIwMTI4NH0.o3UAaJtrNpVh_AsljSC1oZNkJPvQomedvtJlXTE3L6w',
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+    authOptions: FlutterAuthClientOptions(localStorage: SecureLocalStorage()),
   );
 
   runApp(const MyApp());
@@ -36,6 +46,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
         ChangeNotifierProvider(create: (_) => FirProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => CallRecordingProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
@@ -51,7 +62,7 @@ class MyApp extends StatelessWidget {
                 secondary: Colors.greenAccent,
               ),
               useMaterial3: true,
-              textTheme: GoogleFonts.interTextTheme(),
+              textTheme: GoogleFonts.outfitTextTheme(),
               pageTransitionsTheme: const PageTransitionsTheme(
                 builders: {
                   TargetPlatform.android: ZoomPageTransitionsBuilder(),
@@ -61,14 +72,23 @@ class MyApp extends StatelessWidget {
             ),
             darkTheme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.deepPurple,
+                seedColor: AppPalette.accentCyan,
                 brightness: Brightness.dark,
-                primary: Colors.white,
-                secondary: Colors.greenAccent,
+                primary: AppPalette.accentCyan,
+                secondary: AppPalette.accentGreen,
+                surface: AppPalette.cardDark,
+                onSurface: AppPalette.textPrimaryDark,
               ),
               useMaterial3: true,
-              textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
-              scaffoldBackgroundColor: const Color(0xFF121212),
+              textTheme: GoogleFonts.outfitTextTheme(
+                ThemeData.dark().textTheme,
+              ),
+              scaffoldBackgroundColor: AppPalette.primaryDark,
+              cardColor: AppPalette.cardDark,
+              appBarTheme: const AppBarTheme(
+                backgroundColor: AppPalette.primaryDark,
+                elevation: 0,
+              ),
               pageTransitionsTheme: const PageTransitionsTheme(
                 builders: {
                   TargetPlatform.android: ZoomPageTransitionsBuilder(),

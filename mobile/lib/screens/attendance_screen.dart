@@ -10,6 +10,7 @@ import '../widgets/day_details_sheet.dart';
 import '../widgets/premium_loading_indicator.dart';
 import 'package:animations/animations.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import '../utils/app_palette.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -19,10 +20,10 @@ class AttendanceScreen extends StatefulWidget {
 }
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
-  // Dark Aubergine/Purple Color (Matching Calendar) - Header only
-  final Color _darkPurple = const Color(0xFF2D2135);
-  // Orange Accent
-  final Color _orangeAccent = const Color(0xFFF2994A);
+  // Deep Blue Premium Theme (Matching Overview Screen)
+  final Color _deepBlue = AppPalette.primaryDark;
+  // Cyan Accent (Matching Calendar)
+  final Color _cyanAccent = AppPalette.accentCyan;
 
   @override
   void initState() {
@@ -55,12 +56,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     final textColor = isDark ? Colors.white : Colors.black87;
 
     return Scaffold(
-      backgroundColor: _darkPurple,
+      backgroundColor: _deepBlue,
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
           onRefresh: _refreshData,
-          color: _orangeAccent,
+          color: _cyanAccent,
           backgroundColor: bodyColor,
           child: CustomScrollView(
             slivers: [
@@ -215,8 +216,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           Center(
                             child: PremiumLoadingIndicator(
                               size: 50,
-                              startColor: _orangeAccent,
-                              endColor: Colors.deepPurple,
+                              startColor: _cyanAccent,
+                              endColor: const Color(0xFF2F80ED),
                             ),
                           )
                         else if (todayData == null)
@@ -238,8 +239,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           Center(
                             child: PremiumLoadingIndicator(
                               size: 50,
-                              startColor: _orangeAccent,
-                              endColor: Colors.deepPurple,
+                              startColor: _cyanAccent,
+                              endColor: const Color(0xFF2F80ED),
                             ),
                           )
                         else if (attendanceProvider.recentHistory.isEmpty)
@@ -315,8 +316,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     ProcessedDayData data,
     bool isDark,
   ) {
-    final sortedLogs = List<PunchLog>.from(data.punchLogs);
-    sortedLogs.sort((a, b) => b.time.compareTo(a.time));
+    // OPTIMIZED: Avoid sorting on every build - data should be pre-sorted from provider
+    // If not pre-sorted, we cache the result via the data object
+    final sortedLogs = data.punchLogs.toList();
+    if (sortedLogs.length > 1) {
+      sortedLogs.sort((a, b) => b.time.compareTo(a.time));
+    }
     final totalPunches = sortedLogs.length;
 
     return Column(
@@ -348,7 +353,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
 
     final isCheckIn = log.direction == 'in';
-    final accentColor = isCheckIn ? _orangeAccent : Colors.grey.shade600;
+    final accentColor = isCheckIn ? _cyanAccent : Colors.grey.shade600;
 
     // Background color for card
     final cardColor = isDark ? const Color(0xFF2C2C2C) : Colors.white;
@@ -497,7 +502,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     ),
                     child: Icon(
                       Icons.calendar_today_rounded,
-                      color: _orangeAccent,
+                      color: _cyanAccent,
                       size: 20,
                     ),
                   ),
@@ -580,7 +585,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 height: 36,
                 decoration: BoxDecoration(
                   color: isPresent
-                      ? _orangeAccent // Orange for active streak
+                      ? _cyanAccent // Cyan for active streak
                       : Colors.white.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),

@@ -19,8 +19,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
 
+    final bgBase = Theme.of(context).scaffoldBackgroundColor;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF111827), // Dark background
+      backgroundColor:
+          bgBase, // Use global theme background (Deep Blue 0xFF0F1115)
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthProvider with ChangeNotifier {
   User? _user;
@@ -24,16 +25,21 @@ class AuthProvider with ChangeNotifier {
   String? get fullName => _employeeName;
 
   AuthProvider() {
-    _initAuth();
+    // Defer auth initialization to after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initAuth();
+    });
   }
 
   Future<void> _initAuth() async {
+    debugPrint('[Auth] Starting auth initialization...');
     await _loadCachedData(); // Load cache immediately
 
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {
       _session = session;
       _user = session.user;
+      notifyListeners(); // Notify after setting session
       // We already loaded cached data, but we fetch fresh data in background
       _fetchEmployeeData(session.user.id);
     }
@@ -52,15 +58,19 @@ class AuthProvider with ChangeNotifier {
       }
       notifyListeners();
     });
+
+    debugPrint('[Auth] Auth initialization complete');
   }
 
   Future<void> _loadCachedData() async {
-    final prefs = await SharedPreferences.getInstance();
-    _employeeCode = prefs.getString('employee_code');
-    _employeeName = prefs.getString('employee_name');
-    _employeeId = prefs.getString('employee_id');
-    _role = prefs.getString('role');
-    _isStandalone = prefs.getBool('is_standalone') ?? false;
+    // SECURITY: Use encrypted storage instead of plain SharedPreferences
+    final storage = FlutterSecureStorage();
+    _employeeCode = await storage.read(key: 'employee_code');
+    _employeeName = await storage.read(key: 'employee_name');
+    _employeeId = await storage.read(key: 'employee_id');
+    _role = await storage.read(key: 'role');
+    final isStandaloneStr = await storage.read(key: 'is_standalone');
+    _isStandalone = isStandaloneStr == 'true';
     notifyListeners();
   }
 
@@ -128,19 +138,22 @@ class AuthProvider with ChangeNotifier {
         }
       }
 
-      // Cache Data
-      final prefs = await SharedPreferences.getInstance();
+      // Cache Data - SECURITY: Use encrypted storage
+      final storage = FlutterSecureStorage();
       if (_employeeCode != null) {
-        await prefs.setString('employee_code', _employeeCode!);
+        await storage.write(key: 'employee_code', value: _employeeCode!);
       }
       if (_employeeName != null) {
-        await prefs.setString('employee_name', _employeeName!);
+        await storage.write(key: 'employee_name', value: _employeeName!);
       }
       if (_employeeId != null) {
-        await prefs.setString('employee_id', _employeeId!);
+        await storage.write(key: 'employee_id', value: _employeeId!);
       }
-      if (_role != null) await prefs.setString('role', _role!);
-      await prefs.setBool('is_standalone', _isStandalone);
+      if (_role != null) await storage.write(key: 'role', value: _role!);
+      await storage.write(
+        key: 'is_standalone',
+        value: _isStandalone.toString(),
+      );
 
       notifyListeners();
     } catch (e) {

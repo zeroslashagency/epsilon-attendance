@@ -23,6 +23,30 @@ class ProcessedDayData {
     required this.intervals,
     required this.punchLogs,
   });
+
+  factory ProcessedDayData.fromJson(Map<String, dynamic> json) {
+    return ProcessedDayData(
+      date: json['date'] as String,
+      status: json['status'] as String,
+      checkIn: json['checkIn'] as String?,
+      checkOut: json['checkOut'] as String?,
+      totalHours: json['totalHours'] as String? ?? '0:00',
+      confidence: json['confidence'] as String? ?? 'high',
+      hasAmbiguousPunches: json['hasAmbiguousPunches'] as bool? ?? false,
+      intervals:
+          (json['intervals'] as List<dynamic>?)
+              ?.map(
+                (e) => AttendanceInterval.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
+      punchLogs:
+          (json['punchLogs'] as List<dynamic>?)
+              ?.map((e) => PunchLog.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
 }
 
 class AttendanceInterval {
@@ -37,6 +61,15 @@ class AttendanceInterval {
     required this.duration,
     required this.type,
   });
+
+  factory AttendanceInterval.fromJson(Map<String, dynamic> json) {
+    return AttendanceInterval(
+      checkIn: json['checkIn'] as String,
+      checkOut: json['checkOut'] as String,
+      duration: json['duration'] as String,
+      type: json['type'] as String,
+    );
+  }
 }
 
 class PunchLog {
@@ -53,4 +86,14 @@ class PunchLog {
     required this.confidence,
     required this.inferred,
   });
+
+  factory PunchLog.fromJson(Map<String, dynamic> json) {
+    return PunchLog(
+      time: json['time'] as String,
+      direction: json['direction'] as String,
+      deviceId: json['deviceId'] as String? ?? 'unknown',
+      confidence: json['confidence'] as String? ?? 'high',
+      inferred: json['inferred'] as bool? ?? false,
+    );
+  }
 }

@@ -30,7 +30,6 @@ const AuthPage = lazy(() => import("./pages/AuthPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const RoleTestPage = lazy(() => import("./pages/RoleTestPage"));
 const CallHistoryPage = lazy(() => import("./pages/CallHistory/CallHistoryPage"));
-const HeroShowcasePage = lazy(() => import("./pages/HeroShowcasePage"));
 const FIRPage = lazy(() => import("./pages/FIR/FIRPage"));
 const ReportsPage = lazy(() => import("./pages/Reports/ReportsPage"));
 const HistoryPage = lazy(() => import("./pages/History/HistoryPage"));
@@ -57,7 +56,6 @@ const App = () => (
                       <AdminPage />
                     </ProtectedRoute>
                   } />
-                  <Route path="/design-showcase" element={<HeroShowcasePage />} />
 
                   {/* Protected routes with MainLayout */}
                   <Route path="/" element={

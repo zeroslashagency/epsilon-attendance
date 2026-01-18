@@ -48,10 +48,16 @@ dependencies:
   animations: ^2.0.11
   flutter_animate: ^4.5.2
   image_picker: ^1.0.7
+  cached_network_image: ^3.4.1
   permission_handler: ^11.3.1
   record: ^5.1.0
   path_provider: ^2.1.2
   audioplayers: ^6.0.0
+  flutter_contacts: ^1.1.9+1
+  call_log: ^6.0.1
+  geolocator: ^13.0.2
+  flutter_dotenv: ^6.0.0
+  flutter_secure_storage: ^10.0.0
 
 dev_dependencies:
   flutter_test:
@@ -82,6 +88,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/videos/
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

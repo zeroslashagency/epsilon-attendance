@@ -36,7 +36,11 @@ class FirProvider with ChangeNotifier {
   }
 
   FirProvider() {
-    fetchReports();
+    // Defer heavy network fetch to after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('[FirProvider] Starting deferred initialization...');
+      fetchReports();
+    });
   }
 
   // Employees

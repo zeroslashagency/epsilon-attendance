@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/auth_provider.dart';
+import '../providers/call_recording_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../utils/app_palette.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -11,6 +14,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final callRecordingProvider = Provider.of<CallRecordingProvider>(context);
 
     // Theme Colors
     final theme = Theme.of(context);
@@ -18,9 +22,9 @@ class ProfileScreen extends StatelessWidget {
 
     final bgColor = theme.scaffoldBackgroundColor;
     final cardColor = theme.cardColor;
-    const primaryOrange = Color(0xFFF2994A);
-    const primaryPurple = Color(0xFF9C27B0);
-    const primaryGreen = Color(0xFF4CAF50);
+    // Deep Blue Premium Theme
+    const primaryCyan = AppPalette.accentCyan;
+    const primaryGreen = AppPalette.accentGreen;
     final textColor = colorScheme.onSurface;
     // Header text is always white because it's on a colored gradient
     const headerTextColor = Colors.white;
@@ -49,7 +53,7 @@ class ProfileScreen extends StatelessWidget {
               width: double.infinity,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [primaryPurple, primaryOrange],
+                  colors: [AppPalette.primaryDark, AppPalette.accentBlue],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -139,7 +143,7 @@ class ProfileScreen extends StatelessWidget {
                     "Status",
                     "Active",
                     textColor,
-                    valueColor: primaryOrange,
+                    valueColor: primaryCyan,
                   ),
                   _buildRowItem("Member Since", memberSince, textColor),
                   _buildRowItem("Last Login", lastLogin, textColor), // Dynamic
@@ -185,6 +189,286 @@ class ProfileScreen extends StatelessWidget {
                   curve: Curves.easeOutQuad,
                 )
                 .fadeIn(),
+
+            const SizedBox(height: 24),
+
+            // Call Recording & Permissions
+            _buildSectionHeader("Call Recording", textColor),
+            const SizedBox(height: 10),
+
+            // Feature Toggle Component
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Auto-Record Calls",
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            callRecordingProvider.isFeatureEnabled
+                                ? "Feature is Active"
+                                : "Feature is Paused",
+                            style: TextStyle(
+                              color: callRecordingProvider.isFeatureEnabled
+                                  ? primaryGreen
+                                  : primaryCyan,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Switch.adaptive(
+                        value: callRecordingProvider.isFeatureEnabled,
+                        activeTrackColor: primaryCyan,
+                        onChanged: (value) {
+                          callRecordingProvider.toggleFeature(value);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(),
+
+            const SizedBox(height: 16),
+
+            // Permissions Status Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Required Permissions",
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (!callRecordingProvider.areAllPermissionsGranted)
+                        TextButton(
+                          onPressed: () =>
+                              callRecordingProvider.requestMissingPermissions(),
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            "Fix Permissions",
+                            style: TextStyle(fontSize: 10),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPermissionItem(
+                    "Microphone Access",
+                    callRecordingProvider
+                            .permissionStatuses[Permission.microphone]
+                            ?.isGranted ??
+                        false,
+                    textColor,
+                    primaryGreen,
+                  ),
+                  _buildPermissionItem(
+                    "Phone State",
+                    callRecordingProvider
+                            .permissionStatuses[Permission.phone]
+                            ?.isGranted ??
+                        false,
+                    textColor,
+                    primaryGreen,
+                  ),
+                  _buildPermissionItem(
+                    "Contacts (Caller ID)",
+                    callRecordingProvider
+                            .permissionStatuses[Permission.contacts]
+                            ?.isGranted ??
+                        false,
+                    textColor,
+                    primaryGreen,
+                  ),
+                  _buildPermissionItem(
+                    "Ignore Battery",
+                    callRecordingProvider
+                            .permissionStatuses[Permission
+                                .ignoreBatteryOptimizations]
+                            ?.isGranted ??
+                        false,
+                    textColor,
+                    primaryGreen,
+                  ),
+                ],
+              ),
+            ).animate().slideX(delay: 200.ms).fadeIn(),
+
+            const SizedBox(height: 16),
+
+            // Recording Reliability (Accessibility Service)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Professional Bypass",
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: callRecordingProvider.isAccessibilityEnabled
+                              ? primaryGreen.withValues(alpha: 0.1)
+                              : primaryCyan.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          callRecordingProvider.isAccessibilityEnabled
+                              ? "ENABLED"
+                              : "REQUIRED",
+                          style: TextStyle(
+                            color: callRecordingProvider.isAccessibilityEnabled
+                                ? primaryGreen
+                                : primaryCyan,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "To record both sides of a call on Android 14, you MUST enable the Accessibility Service for 'Epsilon'.",
+                    style: TextStyle(
+                      color: textColor.withValues(alpha: 0.6),
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () =>
+                          callRecordingProvider.openAccessibilitySettings(),
+                      icon: const Icon(Icons.settings_accessibility, size: 18),
+                      label: const Text("Enable Accessibility Bypass"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryCyan,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ).animate().slideX(delay: 300.ms).fadeIn(),
+
+            const SizedBox(height: 24),
+
+            // Sync Settings (Visual only for now, integrated with main feature in backend)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Sync All Call History",
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Logs every incoming, outgoing, and missed call to the cloud securely.",
+                          style: TextStyle(
+                            color: textColor.withValues(alpha: 0.6),
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // This is functionally linked to the main feature being enabled for now
+                  Switch.adaptive(
+                    value: callRecordingProvider.isFeatureEnabled,
+                    activeTrackColor: primaryCyan,
+                    onChanged: null, // Disabled, tied to main feature
+                  ),
+                ],
+              ),
+            ).animate().slideX(delay: 200.ms).fadeIn(),
 
             const SizedBox(height: 24),
 
@@ -393,6 +677,35 @@ class ProfileScreen extends StatelessWidget {
             child: Text(
               buttonText,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPermissionItem(
+    String label,
+    bool isGranted,
+    Color textColor,
+    Color activeColor,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        children: [
+          Icon(
+            isGranted ? Icons.check_circle : Icons.cancel,
+            color: isGranted ? activeColor : Colors.redAccent,
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: textColor.withValues(alpha: 0.8),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
