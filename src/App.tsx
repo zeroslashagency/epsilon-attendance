@@ -35,6 +35,7 @@ const ReportsPage = lazy(() => import("./pages/Reports/ReportsPage"));
 const HistoryPage = lazy(() => import("./pages/History/HistoryPage"));
 const CategoriesPage = lazy(() => import("./pages/Categories/CategoriesPage"));
 const CallRecordingsPage = lazy(() => import("./pages/CallRecordings/CallRecordingsPage"));
+const DeviceMonitoringPage = lazy(() => import("./pages/DeviceMonitoring/DeviceMonitoringPage"));
 
 const queryClient = new QueryClient();
 
@@ -114,6 +115,17 @@ const App = () => (
                       <MainLayout>
                         <PageErrorBoundary>
                           <CallRecordingsPage />
+                        </PageErrorBoundary>
+                      </MainLayout>
+                    </ProtectedRoute>
+                  } />
+
+                  {/* Device Monitoring Section */}
+                  <Route path="/device-monitoring" element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <PageErrorBoundary>
+                          <DeviceMonitoringPage />
                         </PageErrorBoundary>
                       </MainLayout>
                     </ProtectedRoute>

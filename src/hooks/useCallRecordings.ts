@@ -43,7 +43,14 @@ export function useCallRecordings() {
                     table: 'call_recordings',
                 },
                 (payload) => {
-                    setRecordings((prev) => [payload.new as CallRecording, ...prev]);
+                    const newRecord = payload.new as CallRecording;
+                    setRecordings((prev) => {
+                        // Strict deduplication: Check if ID already exists
+                        if (prev.some(rec => rec.id === newRecord.id)) {
+                            return prev;
+                        }
+                        return [newRecord, ...prev];
+                    });
                 }
             )
             .on(

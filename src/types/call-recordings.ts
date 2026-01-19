@@ -16,6 +16,7 @@ export interface CallRecording {
     longitude: number | null;
     location_accuracy: number | null;
     location_timestamp: string | null;
+    sim_number: string | null;
     created_at: string;
 }
 

@@ -55,10 +55,21 @@ const AttendancePage = () => {
   useEffect(() => {
     const fetchFIRPoints = async () => {
       if (!activeEmployeeCode) return;
+
+      // First get the employee_master.id for this employee_code
+      const { data: empData } = await supabase
+        .from('employee_master')
+        .select('id')
+        .eq('employee_code', activeEmployeeCode)
+        .maybeSingle();
+
+      if (!empData?.id) return;
+
+      // Now query fir_activity with the integer employee_id
       const { data } = await supabase
         .from('fir_activity')
         .select('id, status')
-        .eq('employee_id', activeEmployeeCode);
+        .eq('employee_id', empData.id);
       if (data) {
         setFirPoints(data.filter(f => f.status === 'resolved').length * 100);
       }

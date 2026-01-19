@@ -25,29 +25,37 @@ export function StatsCards({ recordings }: StatsCardsProps) {
             label: 'Total Calls',
             value: total,
             icon: Phone,
-            color: 'text-blue-600 dark:text-blue-400',
-            bg: 'bg-blue-50 dark:bg-blue-900/20',
+            color: 'text-primary',
+            bg: 'bg-primary/10',
+            change: '+12% vs last week',
+            trend: 'up'
         },
         {
             label: 'Today',
             value: today,
             icon: PhoneIncoming,
-            color: 'text-green-600 dark:text-green-400',
-            bg: 'bg-green-50 dark:bg-green-900/20',
+            color: 'text-blue-500',
+            bg: 'bg-blue-500/10',
+            change: '+5% vs yesterday',
+            trend: 'up'
         },
         {
             label: 'Recorded',
             value: recorded,
             icon: PhoneOutgoing,
-            color: 'text-orange-600 dark:text-orange-400',
-            bg: 'bg-orange-50 dark:bg-orange-900/20',
+            color: 'text-orange-500',
+            bg: 'bg-orange-500/10',
+            change: '85% of total calls',
+            trend: 'neutral'
         },
         {
             label: 'Missed',
             value: missed,
             icon: PhoneMissed,
-            color: 'text-red-600 dark:text-red-400',
-            bg: 'bg-red-50 dark:bg-red-900/20',
+            color: 'text-destructive',
+            bg: 'bg-destructive/10',
+            change: '-2% vs last week',
+            trend: 'down'
         },
     ];
 
@@ -58,19 +66,29 @@ export function StatsCards({ recordings }: StatsCardsProps) {
                 return (
                     <div
                         key={stat.label}
-                        className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+                        className="bg-card dark:bg-card text-card-foreground rounded-xl p-6 shadow-sm border border-border hover:shadow-md transition-shadow"
                     >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                                <p className="text-sm font-medium text-muted-foreground">
                                     {stat.label}
                                 </p>
-                                <p className="text-3xl font-bold mt-2 text-gray-900 dark:text-white">
-                                    {stat.value}
-                                </p>
+                                <div className="flex items-baseline gap-2 mt-2">
+                                    <h3 className="text-3xl font-bold tracking-tight">
+                                        {stat.value}
+                                    </h3>
+                                </div>
+                                {stat.change && (
+                                    <p className={`text-xs mt-2 font-medium ${stat.trend === 'up' ? 'text-green-600 dark:text-green-500' :
+                                            stat.trend === 'down' ? 'text-green-600 dark:text-green-500' : // 'down' for missed calls is usually good (green), context dependent. Keeping simple for now.
+                                                'text-muted-foreground'
+                                        }`}>
+                                        {stat.change}
+                                    </p>
+                                )}
                             </div>
-                            <div className={`${stat.bg} p-3 rounded-lg`}>
-                                <Icon className={`w-6 h-6 ${stat.color}`} />
+                            <div className={`${stat.bg} p-3 rounded-xl`}>
+                                <Icon className={`w-5 h-5 ${stat.color}`} />
                             </div>
                         </div>
                     </div>

@@ -37,24 +37,21 @@ export default function CallRecordingsPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
                                 📞 Call Recordings
                             </h1>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                                 Monitor and manage all call recordings in real-time
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isConnected
-                                    ? 'bg-green-50 dark:bg-green-900/20'
-                                    : 'bg-yellow-50 dark:bg-yellow-900/20'
-                                }`}>
-                                <div className={`w-2 h-2 rounded-full animate-pulse ${isConnected ? 'bg-green-500' : 'bg-yellow-500'
+                            <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${isConnected
+                                ? 'bg-status-present/10 border-status-present/20 text-status-present'
+                                : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600'
+                                } translate-y-0 transition-all`}>
+                                <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${isConnected ? 'bg-status-present' : 'bg-yellow-500'
                                     }`}></div>
-                                <span className={`text-sm font-medium ${isConnected
-                                        ? 'text-green-700 dark:text-green-400'
-                                        : 'text-yellow-700 dark:text-yellow-400'
-                                    }`}>
+                                <span className="text-sm font-semibold tracking-wide">
                                     {isConnected ? 'LIVE' : realtimeStatus}
                                 </span>
                             </div>

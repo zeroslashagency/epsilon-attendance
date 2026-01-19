@@ -49,6 +49,12 @@ export const FEATURE_FLAGS = {
     name: 'Calls',
     path: '/call-recordings',
     description: 'Call recordings dashboard with real-time monitoring'
+  },
+  deviceMonitoring: {
+    enabled: true,
+    name: 'Device Monitoring',
+    path: '/device-monitoring',
+    description: 'Monitor screen time, app usage, network, and Bluetooth activity'
   }
 } as const;
 
