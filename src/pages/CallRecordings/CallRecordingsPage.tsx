@@ -11,10 +11,10 @@ export default function CallRecordingsPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-screen bg-muted/30">
                 <div className="text-center">
                     <Loader2 className="w-12 h-12 animate-spin text-orange-500 mx-auto mb-4" />
-                    <p className="text-gray-600 dark:text-gray-400">Loading call recordings...</p>
+                    <p className="text-muted-foreground">Loading call recordings...</p>
                 </div>
             </div>
         );
@@ -22,25 +22,25 @@ export default function CallRecordingsPage() {
 
     if (error) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-screen bg-muted/30">
                 <div className="text-center">
-                    <p className="text-red-600 dark:text-red-400">Error: {error}</p>
+                    <p className="text-destructive">Error: {error}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen bg-background">
             {/* Header */}
-            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <div className="bg-background border-b border-border">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+                            <h1 className="text-3xl font-bold text-foreground tracking-tight">
                                 📞 Call Recordings
                             </h1>
-                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            <p className="mt-2 text-sm text-muted-foreground">
                                 Monitor and manage all call recordings in real-time
                             </p>
                         </div>

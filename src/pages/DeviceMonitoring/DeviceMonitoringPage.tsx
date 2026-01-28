@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import {
     Bluetooth,
     RefreshCw,
     Download,
-    Calendar,
     Users,
     Activity,
     TrendingUp,
@@ -21,7 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-    fetchTodaySummary,
+    fetchDailySummary, /* Renamed from fetchTodaySummary */
     fetchScreenTimeLogs,
     fetchAppUsageLogs,
     fetchNetworkLogs,
@@ -41,7 +40,18 @@ import {
     type StorageLog,
     type DeviceEvent,
     type DeviceNotification,
+    fetchScreenTimeHistory,
 } from "@/services/deviceMonitoringService";
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip as RechartsTooltip,
+    ResponsiveContainer,
+    Legend
+} from 'recharts';
 import {
     Dialog,
     DialogContent,
@@ -49,16 +59,18 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogOverlay,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import { JollySelect, SelectItem } from "@/components/ui/select";
+import { toast } from "sonner";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverTrigger, PopoverDialog } from "@/components/ui/popover";
+import { format, subDays, addDays, isSameDay } from "date-fns";
+import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { NetworkPanel } from "@/components/Network/NetworkPanel";
+import { BluetoothPanel } from "@/components/Bluetooth/BluetoothPanel";
+import { EventsPanel } from "@/components/Events/EventsPanel";
 
 // Stat Card Component
 function StatCard({
@@ -261,6 +273,8 @@ export default function DeviceMonitoringPage() {
     const [activeTab, setActiveTab] = useState("overview");
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [realtimeStatus, setRealtimeStatus] = useState<'SUBSCRIBED' | 'TIMED_OUT' | 'CLOSED' | 'CHANNEL_ERROR' | 'CONNECTING'>('CONNECTING');
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
     // Summary data
     const [summary, setSummary] = useState<{
@@ -282,7 +296,6 @@ export default function DeviceMonitoringPage() {
     const [employeeScreenTime, setEmployeeScreenTime] = useState<Array<{ employeeCode: string; totalMinutes: number; unlockCount: number; devices: number }>>([]);
 
     // Notification state
-    const { toast } = useToast();
     const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
     const [notificationTitle, setNotificationTitle] = useState("");
@@ -292,11 +305,7 @@ export default function DeviceMonitoringPage() {
 
     const handleSendNotification = async () => {
         if (!selectedEmployee || !notificationTitle || !notificationBody) {
-            toast({
-                title: "Error",
-                description: "Please fill in all required fields.",
-                variant: "destructive",
-            });
+            toast.error("Please fill in all required fields.");
             return;
         }
 
@@ -310,10 +319,7 @@ export default function DeviceMonitoringPage() {
             );
 
             if (success) {
-                toast({
-                    title: "Success",
-                    description: `Notification sent to ${selectedEmployee}.`,
-                });
+                toast.success(`Notification sent to ${selectedEmployee}.`);
                 setIsNotificationDialogOpen(false);
                 setNotificationTitle("");
                 setNotificationBody("");
@@ -321,11 +327,7 @@ export default function DeviceMonitoringPage() {
                 throw new Error("Failed to send notification");
             }
         } catch (error) {
-            toast({
-                title: "Error",
-                description: "Failed to send notification. Please try again.",
-                variant: "destructive",
-            });
+            toast.error("Failed to send notification. Please try again.");
         } finally {
             setIsSendingNotification(false);
         }
@@ -336,18 +338,25 @@ export default function DeviceMonitoringPage() {
         setIsNotificationDialogOpen(true);
     };
 
+    const [screenTimeHistory, setScreenTimeHistory] = useState<Array<{ date: string; totalMinutes: number; unlockCount: number }>>([]);
+    const [overviewDate, setOverviewDate] = useState<Date>(new Date());
+
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [summaryData, screenTime, appUsage, network, bluetooth, storage, events, byEmployee] = await Promise.all([
-                fetchTodaySummary(),
-                fetchScreenTimeLogs(),
-                fetchAppUsageLogs(),
-                fetchNetworkLogs(),
-                fetchBluetoothLogs(),
-                fetchStorageLogs(),
-                fetchDeviceEvents(),
-                fetchScreenTimeByEmployee(),
+            // Format date as YYYY-MM-DD for API
+            const dateStr = format(overviewDate, 'yyyy-MM-dd');
+
+            const [summaryData, screenTime, appUsage, network, bluetooth, storage, events, byEmployee, history] = await Promise.all([
+                fetchDailySummary(dateStr),
+                fetchScreenTimeLogs(dateStr, dateStr), // Filter for select date
+                fetchAppUsageLogs(dateStr, dateStr),
+                fetchNetworkLogs(dateStr, dateStr),
+                fetchBluetoothLogs(dateStr, dateStr),
+                fetchStorageLogs(dateStr, dateStr),
+                fetchDeviceEvents(dateStr, dateStr),
+                fetchScreenTimeByEmployee(dateStr),
+                fetchScreenTimeHistory(7),
             ]);
 
             setSummary(summaryData);
@@ -358,13 +367,16 @@ export default function DeviceMonitoringPage() {
             setStorageLogs(storage);
             setDeviceEvents(events);
             setEmployeeScreenTime(byEmployee);
+            setScreenTimeHistory(history);
+
         } catch (error) {
             console.error('Error loading device monitoring data:', error);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [overviewDate]); // Dependent on overviewDate changes
 
+    // Update loadData in useEffect
     useEffect(() => {
         loadData();
     }, [loadData]);
@@ -375,15 +387,34 @@ export default function DeviceMonitoringPage() {
         setIsRefreshing(false);
     };
 
-    // Real-time subscription
+    // Real-time subscription with debounce
+    const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useEffect(() => {
-        const unsubscribe = subscribeToMonitoringUpdates((payload) => {
-            console.log("Real-time update received:", payload);
-            // Throttle or debounce if many updates come in
-            loadData();
-        });
+        const unsubscribe = subscribeToMonitoringUpdates(
+            (payload) => {
+                console.log("Real-time update received:", payload);
+                setLastUpdated(new Date());
+
+                // Clear existing timeout to debounce
+                if (refreshTimeoutRef.current) {
+                    clearTimeout(refreshTimeoutRef.current);
+                }
+
+                // Set a new timeout to refresh data after 1 second of inactivity
+                refreshTimeoutRef.current = setTimeout(() => {
+                    loadData();
+                }, 1000);
+            },
+            (status) => {
+                console.log("Realtime status changed:", status);
+                setRealtimeStatus(status);
+            }
+        );
 
         return () => {
+            if (refreshTimeoutRef.current) {
+                clearTimeout(refreshTimeoutRef.current);
+            }
             unsubscribe();
         };
     }, [loadData]);
@@ -433,6 +464,25 @@ export default function DeviceMonitoringPage() {
                             <span className="font-medium">{deviceStatus.label}</span>
                             <span className="text-muted-foreground border-l pl-2 ml-1">{deviceStatus.lastSync}</span>
                         </div>
+                        <div className={cn(
+                            "flex items-center gap-1.5 px-2.5 py-1 border rounded-full text-[10px] shadow-sm font-bold uppercase tracking-wider",
+                            realtimeStatus === 'SUBSCRIBED' ? "bg-green-500/10 border-green-500/20 text-green-600" :
+                                realtimeStatus === 'CONNECTING' ? "bg-yellow-500/10 border-yellow-500/20 text-yellow-600" :
+                                    "bg-red-500/10 border-red-500/20 text-red-600"
+                        )}>
+                            <div className={cn(
+                                "w-1.5 h-1.5 rounded-full",
+                                realtimeStatus === 'SUBSCRIBED' ? "bg-green-600 animate-pulse" :
+                                    realtimeStatus === 'CONNECTING' ? "bg-yellow-600 animate-bounce" :
+                                        "bg-red-600"
+                            )} />
+                            {realtimeStatus === 'SUBSCRIBED' ? 'LIVE' : realtimeStatus}
+                        </div>
+                        {lastUpdated && (
+                            <span className="text-[10px] text-muted-foreground ml-2">
+                                Updated {lastUpdated.toLocaleTimeString()}
+                            </span>
+                        )}
                     </div>
                     <p className="text-muted-foreground mt-1">
                         Monitor screen time, app usage, network activity, and connected devices
@@ -442,8 +492,8 @@ export default function DeviceMonitoringPage() {
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={handleRefresh}
-                        disabled={isRefreshing}
+                        onPress={handleRefresh}
+                        isDisabled={isRefreshing}
                     >
                         <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
                         Refresh
@@ -452,8 +502,8 @@ export default function DeviceMonitoringPage() {
                         <Download className="h-4 w-4 mr-2" />
                         Export
                     </Button>
-                    <Button variant="outline" size="sm">
-                        <Calendar className="h-4 w-4 mr-2" />
+                    <Button variant="outline" size="sm" onPress={() => setOverviewDate(new Date())}>
+                        <CalendarIcon className="h-4 w-4 mr-2" />
                         Today
                     </Button>
                 </div>
@@ -494,24 +544,85 @@ export default function DeviceMonitoringPage() {
 
                 {/* Overview Tab */}
                 <TabsContent value="overview" className="space-y-4">
+                    {/* Date Picker Toolbar */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-muted/20 p-4 rounded-xl border border-border/50 shadow-sm backdrop-blur-sm">
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="rounded-full w-8 h-8"
+                                onPress={() => setOverviewDate(prev => subDays(prev, 1))}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+
+                            <PopoverTrigger>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-[220px] justify-start text-left font-normal bg-background/50",
+                                        !overviewDate && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+                                    {overviewDate ? format(overviewDate, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                                <Popover>
+                                    <PopoverDialog>
+                                        <Calendar
+                                            mode="single"
+                                            selected={overviewDate}
+                                            onSelect={(date) => date && setOverviewDate(date as Date)}
+                                        />
+                                    </PopoverDialog>
+                                </Popover>
+                            </PopoverTrigger>
+
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="rounded-full w-8 h-8"
+                                onPress={() => setOverviewDate(prev => addDays(prev, 1))}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onPress={() => setOverviewDate(new Date())}
+                                className={cn(
+                                    "ml-2 text-xs",
+                                    isSameDay(overviewDate, new Date()) ? "text-primary font-bold bg-primary/5" : "text-muted-foreground"
+                                )}
+                            >
+                                Go Today
+                            </Button>
+                        </div>
+
+                        <div className="text-xs font-medium text-muted-foreground bg-background/50 px-3 py-1 rounded-full border">
+                            Viewing: {format(overviewDate, "MMMM do, yyyy")}
+                        </div>
+                    </div>
+
                     {/* Stats Grid */}
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <StatCard
                             title="Active Devices"
                             value={summary?.screenTime.activeDevices.toString() || "0"}
                             icon={<Users className="h-4 w-4" />}
-                            description="Devices reporting today"
+                            description="Devices reporting"
                             loading={isLoading}
                         />
                         <StatCard
                             title="Recent Events"
                             value={deviceEvents.length.toString()}
                             icon={<Zap className="h-4 w-4" />}
-                            description="Device events today"
+                            description="Device events"
                             loading={isLoading}
                         />
                         <StatCard
-                            title="Data Used Today"
+                            title="Data Used"
                             value={summary ? formatBytes(summary.networkUsage.wifi + summary.networkUsage.mobile) : "0 MB"}
                             icon={<Activity className="h-4 w-4" />}
                             description="WiFi + Mobile Data"
@@ -573,7 +684,7 @@ export default function DeviceMonitoringPage() {
                                     Top Apps
                                 </CardTitle>
                                 <CardDescription>
-                                    Most used applications today
+                                    Most used applications
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -623,9 +734,69 @@ export default function DeviceMonitoringPage() {
                             value={employeeScreenTime.length.toString()}
                             icon={<Users className="h-4 w-4" />}
                             description="With screen time data"
-                            loading={isLoading}
                         />
                     </div>
+
+                    {/* Usage History Chart */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Usage History</CardTitle>
+                            <CardDescription>Daily screen time over the last 7 days</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[300px] w-full">
+                                {isLoading ? (
+                                    <div className="h-full bg-muted animate-pulse rounded" />
+                                ) : screenTimeHistory.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={screenTimeHistory}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis
+                                                dataKey="date"
+                                                tickFormatter={(value) => {
+                                                    const date = new Date(value);
+                                                    return `${date.getDate()}/${date.getMonth() + 1}`;
+                                                }}
+                                                fontSize={12}
+                                            />
+                                            <YAxis
+                                                tickFormatter={(value) => `${Math.round(value / 60)}h`}
+                                                fontSize={12}
+                                            />
+                                            <RechartsTooltip
+                                                cursor={{ fill: 'transparent' }}
+                                                content={({ active, payload, label }) => {
+                                                    if (active && payload && payload.length) {
+                                                        const mins = payload[0].value as number;
+                                                        return (
+                                                            <div className="bg-popover border text-popover-foreground p-2 rounded shadow-lg text-xs">
+                                                                <p className="font-bold">{label}</p>
+                                                                <p>{formatMinutes(mins)} Screen Time</p>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                }}
+                                            />
+                                            <Bar
+                                                dataKey="totalMinutes"
+                                                fill="currentColor"
+                                                className="fill-primary"
+                                                radius={[4, 4, 0, 0]}
+                                                maxBarSize={50}
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <EmptyState
+                                        icon={<Clock className="h-8 w-8 text-muted-foreground" />}
+                                        title="No History Data"
+                                        description="Historical data will appear here."
+                                    />
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     <Card>
                         <CardHeader>
@@ -656,7 +827,7 @@ export default function DeviceMonitoringPage() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => openNotificationDialog(emp.employeeCode)}
+                                                    onPress={() => openNotificationDialog(emp.employeeCode)}
                                                 >
                                                     <Zap className="h-4 w-4 mr-2" />
                                                     Alert
@@ -676,7 +847,7 @@ export default function DeviceMonitoringPage() {
                     </Card>
 
                     {/* Notification Dialog */}
-                    <Dialog open={isNotificationDialogOpen} onOpenChange={setIsNotificationDialogOpen}>
+                    <DialogOverlay isOpen={isNotificationDialogOpen} onOpenChange={setIsNotificationDialogOpen}>
                         <DialogContent className="sm:max-w-[425px]">
                             <DialogHeader>
                                 <DialogTitle>Send Alert to {selectedEmployee}</DialogTitle>
@@ -687,20 +858,16 @@ export default function DeviceMonitoringPage() {
                             <div className="grid gap-4 py-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Type</label>
-                                    <Select
-                                        value={notificationType}
-                                        onValueChange={(value: any) => setNotificationType(value)}
+                                    <JollySelect
+                                        label="Type"
+                                        selectedKey={notificationType}
+                                        onSelectionChange={(key) => setNotificationType(key as any)}
                                     >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="reminder">Reminder</SelectItem>
-                                            <SelectItem value="alert">Alert</SelectItem>
-                                            <SelectItem value="broadcast">Broadcast</SelectItem>
-                                            <SelectItem value="policy">Policy</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                        <SelectItem id="reminder">Reminder</SelectItem>
+                                        <SelectItem id="alert">Alert</SelectItem>
+                                        <SelectItem id="broadcast">Broadcast</SelectItem>
+                                        <SelectItem id="policy">Policy</SelectItem>
+                                    </JollySelect>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Title</label>
@@ -724,20 +891,20 @@ export default function DeviceMonitoringPage() {
                             <DialogFooter>
                                 <Button
                                     variant="outline"
-                                    onClick={() => setIsNotificationDialogOpen(false)}
-                                    disabled={isSendingNotification}
+                                    onPress={() => setIsNotificationDialogOpen(false)}
+                                    isDisabled={isSendingNotification}
                                 >
                                     Cancel
                                 </Button>
                                 <Button
-                                    onClick={handleSendNotification}
-                                    disabled={isSendingNotification}
+                                    onPress={handleSendNotification}
+                                    isDisabled={isSendingNotification}
                                 >
                                     {isSendingNotification ? "Sending..." : "Send Notification"}
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
-                    </Dialog>
+                    </DialogOverlay>
                 </TabsContent>
 
                 {/* App Usage Tab */}
@@ -788,75 +955,12 @@ export default function DeviceMonitoringPage() {
 
                 {/* Network Tab */}
                 <TabsContent value="network" className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-3">
-                        <StatCard
-                            title="WiFi Data"
-                            value={summary ? formatBytes(summary.networkUsage.wifi) : "0 MB"}
-                            icon={<Wifi className="h-4 w-4" />}
-                            description="Total WiFi usage"
-                            loading={isLoading}
-                        />
-                        <StatCard
-                            title="Mobile Data"
-                            value={summary ? formatBytes(summary.networkUsage.mobile) : "0 MB"}
-                            icon={<Activity className="h-4 w-4" />}
-                            description="Total mobile data"
-                            loading={isLoading}
-                        />
-                        <StatCard
-                            title="Networks"
-                            value={new Set(networkLogs.map(n => n.network_name).filter(Boolean)).size.toString()}
-                            icon={<Wifi className="h-4 w-4" />}
-                            description="Unique networks connected"
-                            loading={isLoading}
-                        />
-                    </div>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Network Activity</CardTitle>
-                            <CardDescription>WiFi and mobile data usage logs</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading ? (
-                                <div className="space-y-4">
-                                    {[1, 2, 3].map(i => (
-                                        <div key={i} className="h-16 bg-muted animate-pulse rounded" />
-                                    ))}
-                                </div>
-                            ) : networkLogs.length > 0 ? (
-                                <div className="divide-y">
-                                    {networkLogs.slice(0, 20).map((log) => (
-                                        <div key={log.id} className="py-3 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                {log.connection_type === 'wifi' ? (
-                                                    <Wifi className="h-5 w-5 text-blue-500" />
-                                                ) : (
-                                                    <Activity className="h-5 w-5 text-orange-500" />
-                                                )}
-                                                <div>
-                                                    <p className="font-medium">
-                                                        {log.network_name || (log.connection_type === 'wifi' ? 'WiFi' : 'Mobile Data')}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground">{log.employee_code}</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-medium">{formatBytes(log.bytes_received + log.bytes_sent)}</p>
-                                                <p className="text-xs text-muted-foreground">{log.log_date}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <EmptyState
-                                    icon={<Wifi className="h-8 w-8 text-muted-foreground" />}
-                                    title="No Network Data"
-                                    description="Network usage data will appear here."
-                                />
-                            )}
-                        </CardContent>
-                    </Card>
+                    <NetworkPanel
+                        summary={summary}
+                        networkLogs={networkLogs}
+                        deviceEvents={deviceEvents}
+                        isLoading={isLoading}
+                    />
                 </TabsContent>
 
                 {/* Storage Tab */}
@@ -901,7 +1005,7 @@ export default function DeviceMonitoringPage() {
                                     {storageLogs.slice(0, 20).map((log) => (
                                         <div key={log.id} className="py-3 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <HardDrive className="h-5 w-5 text-gray-500" />
+                                                <HardDrive className="h-5 w-5 text-muted-foreground" />
                                                 <div>
                                                     <p className="font-medium">Storage Check</p>
                                                     <p className="text-sm text-muted-foreground">{log.employee_code}</p>
@@ -911,7 +1015,7 @@ export default function DeviceMonitoringPage() {
                                                 <p className="font-medium text-sm">
                                                     {formatBytes(log.used_bytes)} / {formatBytes(log.total_bytes)}
                                                 </p>
-                                                <div className="w-24 h-2 bg-gray-200 rounded-full mt-1 ml-auto overflow-hidden">
+                                                <div className="w-24 h-2 bg-muted rounded-full mt-1 ml-auto overflow-hidden">
                                                     <div
                                                         className="h-full bg-blue-500"
                                                         style={{ width: `${(log.used_bytes / log.total_bytes) * 100}%` }}
@@ -935,125 +1039,17 @@ export default function DeviceMonitoringPage() {
 
                 {/* Events Tab */}
                 <TabsContent value="events" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Device Events</CardTitle>
-                            <CardDescription>Recent system events (Screen On/Off, Shutdown, etc.)</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading ? (
-                                <div className="space-y-4">
-                                    {[1, 2, 3].map(i => (
-                                        <div key={i} className="h-16 bg-muted animate-pulse rounded" />
-                                    ))}
-                                </div>
-                            ) : deviceEvents.length > 0 ? (
-                                <div className="divide-y">
-                                    {deviceEvents.map((event) => (
-                                        <div key={event.id} className="py-3 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className={cn(
-                                                    "w-8 h-8 rounded-full flex items-center justify-center",
-                                                    event.event_type.includes('ON') ? "bg-green-100 text-green-600" :
-                                                        event.event_type.includes('OFF') ? "bg-red-100 text-red-600" :
-                                                            "bg-gray-100 text-gray-600"
-                                                )}>
-                                                    <Power className="h-4 w-4" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium capitalize">{event.event_type.replace(/_/g, ' ')}</p>
-                                                    <p className="text-sm text-muted-foreground">{event.employee_code}</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-medium">
-                                                    {new Date(event.event_time).toLocaleTimeString()}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {new Date(event.event_time).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <EmptyState
-                                    icon={<List className="h-8 w-8 text-muted-foreground" />}
-                                    title="No Events"
-                                    description="Device events will appear here."
-                                />
-                            )}
-                        </CardContent>
-                    </Card>
+                    <EventsPanel deviceEvents={deviceEvents} isLoading={isLoading} />
                 </TabsContent>
 
                 {/* Bluetooth Tab */}
                 <TabsContent value="bluetooth" className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-3">
-                        <StatCard
-                            title="Connected Devices"
-                            value={summary?.bluetoothDevices.toString() || "0"}
-                            icon={<Bluetooth className="h-4 w-4" />}
-                            description="Unique devices today"
-                            loading={isLoading}
-                        />
-                        <StatCard
-                            title="Connection Events"
-                            value={bluetoothLogs.length.toString()}
-                            icon={<Activity className="h-4 w-4" />}
-                            description="Today's connections"
-                            loading={isLoading}
-                        />
-                        <StatCard
-                            title="Device Types"
-                            value={new Set(bluetoothLogs.map(b => b.device_type).filter(Boolean)).size.toString()}
-                            icon={<Monitor className="h-4 w-4" />}
-                            description="Unique device types"
-                            loading={isLoading}
-                        />
-                    </div>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Bluetooth Devices</CardTitle>
-                            <CardDescription>Connected bluetooth devices and connection history</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading ? (
-                                <div className="space-y-4">
-                                    {[1, 2, 3].map(i => (
-                                        <div key={i} className="h-16 bg-muted animate-pulse rounded" />
-                                    ))}
-                                </div>
-                            ) : bluetoothLogs.length > 0 ? (
-                                <div className="divide-y">
-                                    {bluetoothLogs.slice(0, 20).map((log) => (
-                                        <div key={log.id} className="py-3 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <Bluetooth className="h-5 w-5 text-blue-500" />
-                                                <div>
-                                                    <p className="font-medium">{log.device_name}</p>
-                                                    <p className="text-sm text-muted-foreground capitalize">
-                                                        {log.device_type || 'unknown'} • {log.employee_code}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-medium">{log.connection_count}x</p>
-                                                <p className="text-xs text-muted-foreground">{log.log_date}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <EmptyState
-                                    icon={<Bluetooth className="h-8 w-8 text-muted-foreground" />}
-                                    title="No Bluetooth Data"
-                                    description="Bluetooth device connections will appear here."
-                                />
-                            )}
-                        </CardContent>
-                    </Card>
+                    <BluetoothPanel
+                        summary={summary}
+                        bluetoothLogs={bluetoothLogs}
+                        deviceEvents={deviceEvents}
+                        isLoading={isLoading}
+                    />
                 </TabsContent>
             </Tabs>
         </div>

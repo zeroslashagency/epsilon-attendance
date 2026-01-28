@@ -29,8 +29,8 @@ const HistoryPage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full bg-slate-50 dark:bg-slate-950">
-                <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={32} />
+            <div className="flex items-center justify-center h-full bg-muted/30">
+                <Loader2 className="animate-spin text-primary" size={32} />
             </div>
         );
     }

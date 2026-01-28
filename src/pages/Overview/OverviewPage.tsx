@@ -160,10 +160,10 @@ const OverviewPage = () => {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-32 bg-gray-200 rounded-lg mb-6"></div>
+          <div className="h-32 bg-muted rounded-lg mb-6"></div>
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2 h-64 bg-gray-200 rounded-lg"></div>
-            <div className="h-64 bg-gray-200 rounded-lg"></div>
+            <div className="xl:col-span-2 h-64 bg-muted rounded-lg"></div>
+            <div className="h-64 bg-muted rounded-lg"></div>
           </div>
         </div>
       </div>
@@ -175,7 +175,7 @@ const OverviewPage = () => {
       <div className="space-y-6">
         <div className="text-center py-12">
           <p className="text-red-600 mb-4">Error loading overview data: {error}</p>
-          <p className="text-sm text-gray-600 mb-4">Employee Code: {effectiveEmployeeCode}</p>
+          <p className="text-sm text-muted-foreground mb-4">Employee Code: {effectiveEmployeeCode}</p>
           <button 
             onClick={refresh}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -232,5 +232,4 @@ const OverviewPage = () => {
 };
 
 export default OverviewPage;
-
 

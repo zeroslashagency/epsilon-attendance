@@ -1,0 +1,204 @@
+project:
+  name: "Epsilon Attendance System"
+  language: "TypeScript & Dart"
+  framework: "React & Flutter"
+  description: "Comprehensive attendance tracking system with web and mobile applications"
+
+commands:
+  # Web Application Commands
+  test_web: "npm run test"
+  test_web_coverage: "npm run test:coverage"
+  test_web_ui: "npm run test:ui"
+  lint_web: "npm run lint"
+  typecheck_web: "tsc --noEmit"
+  build_web: "npm run build"
+  build_web_dev: "npm run build:dev"
+  preview_web: "npm run preview"
+
+  # Mobile Application Commands
+  test_mobile: "cd mobile && flutter test"
+  test_mobile_coverage: "cd mobile && flutter test --coverage"
+  analyze_mobile: "cd mobile && flutter analyze"
+  build_mobile: "cd mobile && flutter build apk"
+  lint_mobile: "cd mobile && flutter analyze"
+
+  # Development Commands
+  dev_web: "npm run dev"
+  dev_mobile: "cd mobile && flutter run"
+
+rules:
+  # Testing Rules
+  - "Use existing test patterns from __tests__ folders"
+  - "Follow Vitest configuration in vitest.config.ts"
+  - "Follow Flutter test patterns in test/ folder"
+  - "Mock Supabase client in unit tests"
+  - "Use @testing-library/react for component testing"
+  - "Use flutter_test for Flutter widget testing"
+  - "Test both success and error scenarios"
+  - "Test edge cases and boundary conditions"
+
+  # Code Quality Rules
+  - "Follow existing code style and conventions"
+  - "Use TypeScript strict mode for web app"
+  - "Use Dart analyzer for mobile app"
+  - "Remove console.log statements in production code"
+  - "Add proper error handling with try-catch"
+  - "Use async/await for asynchronous operations"
+  - "Follow React best practices"
+  - "Follow Flutter best practices"
+
+  # Documentation Rules
+  - "Document all bugs found with severity and reproduction steps"
+  - "Include test coverage percentages in reports"
+  - "Add screenshots for visual bugs"
+  - "Include file paths and line numbers for all issues"
+  - "Provide suggested fixes for bugs found"
+  - "Document any configuration changes made"
+
+  # Testing Coverage Rules
+  - "Ensure all public functions have tests"
+  - "Test all authentication flows"
+  - "Test all database operations"
+  - "Test all API endpoints"
+  - "Test error handling paths"
+  - "Test loading and error states"
+  - "Test user interactions"
+  - "Test responsive design breakpoints"
+
+  # Integration Rules
+  - "Test shared Supabase authentication between web and mobile"
+  - "Test data synchronization consistency"
+  - "Test real-time subscription functionality"
+  - "Test concurrent access scenarios"
+  - "Test offline/online transitions"
+  - "Test database transaction rollbacks"
+
+boundaries:
+  never_touch:
+    # Dependencies
+    - "node_modules/**"
+    - "mobile/.dart_tool/**"
+    - "mobile/build/**"
+    - "mobile/.flutter-plugins/**"
+    - "mobile/.flutter-plugins-dependencies/**"
+
+    # Build artifacts
+    - "dist/**"
+    - "build/**"
+    - ".cache/**"
+
+    # Lock files
+    - "package-lock.json"
+    - "mobile/pubspec.lock"
+
+    # Git
+    - ".git/**"
+
+    # OS files
+    - ".DS_Store"
+    - ".vscode/**"
+
+    # Test artifacts
+    - "coverage/**"
+    - "test-results/**"
+    - ".nyc_output/**"
+
+  read_only:
+    # Documentation (unless updating test results)
+    - "docs/**/*.md"
+    - "PROJECT_HEALTH_REPORT.md"
+    - "DATABASE_SCHEMA.md"
+
+    # Configuration files
+    - "tsconfig*.json"
+    - "vite.config.ts"
+    - "tailwind.config.ts"
+    - "mobile/pubspec.yaml"
+    - "mobile/analysis_options.yaml"
+
+# Test Configuration
+test:
+  web:
+    framework: "vitest"
+    environment: "jsdom"
+    coverage_threshold:
+      statements: 70
+      branches: 65
+      functions: 70
+      lines: 70
+
+  mobile:
+    framework: "flutter_test"
+    coverage_threshold:
+      statements: 60
+      branches: 55
+      functions: 60
+      lines: 60
+
+# Bug Severity Levels
+bug_severity:
+  critical:
+    - "Application crash"
+    - "Data loss"
+    - "Security vulnerability"
+    - "Authentication bypass"
+    - "Data corruption"
+
+  high:
+    - "Major feature broken"
+    - "Critical UI bug blocking usage"
+    - "Performance degradation"
+    - "Data inconsistency"
+
+  medium:
+    - "Minor feature broken"
+    - "UI/UX issue affecting usability"
+    - "Workaround available"
+
+  low:
+    - "Cosmetic issue"
+    - "Documentation error"
+    - "Minor performance issue"
+
+# Report Configuration
+reporting:
+  output_dir: "/Users/xoxo/Documents/epsilon/report"
+  formats:
+    - "markdown"
+    - "json"
+  include:
+    - "test_summary"
+    - "coverage_report"
+    - "bug_report"
+    - "execution_log"
+    - "recommendations"
+
+# Environment Configuration
+environment:
+  web:
+    node_version: "18+"
+    supabase_url: "${VITE_SUPABASE_URL}"
+    supabase_anon_key: "${VITE_SUPABASE_ANON_KEY}"
+
+  mobile:
+    flutter_version: "3.0+"
+    dart_version: "3.0+"
+    supabase_url: "${SUPABASE_URL}"
+    supabase_anon_key: "${SUPABASE_ANON_KEY}"
+
+# Ralphy Settings
+ralphy:
+  version: "4.0.0"
+  engine: "opencode"
+  timeout: 300
+  max_retries: 3
+  retry_delay: 5
+  verbose: true
+  parallel:
+    enabled: false
+    max_agents: 3
+  branch_per_task: false
+  create_prs: false
+  auto_commit: true
+  skip_tests: false
+  skip_lint: false

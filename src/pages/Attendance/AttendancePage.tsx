@@ -15,6 +15,7 @@ import {
   FileText,
   Users
 } from 'lucide-react';
+import { AttendanceHistory } from '@/components/Attendance/AttendanceHistory';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -116,7 +117,7 @@ const AttendancePage = () => {
     const days = Object.values(attendanceData);
     return {
       present: days.filter(d => d.status === 'present').length,
-      late: days.filter(d => d.isLate).length,
+      late: days.filter(d => d.status === 'late').length,
       absent: days.filter(d => d.status === 'absent').length,
       totalHours: days.reduce((sum, d) => {
         const hrs = parseFloat(d.totalHours?.replace(':', '.') || '0');
@@ -134,22 +135,16 @@ const AttendancePage = () => {
         date,
         formattedDate: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         title: data.status === 'present'
-          ? (data.isLate ? 'Late Arrival' : 'Punch In')
-          : 'Absent',
-        description: data.status === 'present'
+          ? 'Punch In'
+          : data.status === 'late' ? 'Late Arrival' : 'Absent',
+        description: data.status !== 'absent'
           ? `Worked ${data.totalHours || '0:00'} hours`
           : 'No attendance recorded',
-        status: data.isLate ? 'Late' : data.status === 'present' ? 'Present' : 'Absent',
-        statusColor: data.isLate ? 'bg-yellow-100 text-yellow-700' :
+        status: data.status === 'late' ? 'Late' : data.status === 'present' ? 'Present' : 'Absent',
+        statusColor: data.status === 'late' ? 'bg-yellow-100 text-yellow-700' :
           data.status === 'present' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
       }));
   }, [attendanceData]);
-
-  // Silent refresh
-  useEffect(() => {
-    const interval = setInterval(silentRefresh, 5000);
-    return () => clearInterval(interval);
-  }, [silentRefresh]);
 
   const initials = (activeName || email.split('@')[0])
     .split(' ')
@@ -297,8 +292,8 @@ const AttendancePage = () => {
                           className={cn(
                             "aspect-square flex flex-col items-center justify-center rounded-lg text-sm",
                             day === today && "ring-2 ring-lime-400",
-                            data?.status === 'present' && !data?.isLate && "bg-emerald-100 text-emerald-700",
-                            data?.isLate && "bg-yellow-100 text-yellow-700",
+                            data?.status === 'present' && "bg-emerald-100 text-emerald-700",
+                            data?.status === 'late' && "bg-yellow-100 text-yellow-700",
                             data?.status === 'absent' && "bg-red-100 text-red-700",
                             !data && day < today && "bg-muted/50 text-muted-foreground",
                             day > today && "text-muted-foreground/50"
@@ -306,7 +301,10 @@ const AttendancePage = () => {
                         >
                           <span className="font-medium">{day}</span>
                           {data?.status === 'present' && (
-                            <span className="text-[10px]">{data.isLate ? 'Late' : 'P'}</span>
+                            <span className="text-[10px]">P</span>
+                          )}
+                          {data?.status === 'late' && (
+                            <span className="text-[10px]">Late</span>
                           )}
                           {data?.status === 'absent' && <span className="text-[10px]">A</span>}
                         </div>
@@ -354,10 +352,7 @@ const AttendancePage = () => {
 
                 {/* History Tab */}
                 <TabsContent value="history" className="m-0">
-                  <div className="text-center py-8 text-muted-foreground">
-                    <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>Full attendance history coming soon</p>
-                  </div>
+                  <AttendanceHistory />
                 </TabsContent>
               </CardContent>
             </Tabs>

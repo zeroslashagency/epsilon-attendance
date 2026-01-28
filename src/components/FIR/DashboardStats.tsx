@@ -1,6 +1,6 @@
 import React from 'react';
 import { FileText, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { Report, ReportStatus, Priority } from '../../services/fir/types';
+import { Report, ReportStatus, Priority } from '@/types/fir';
 
 interface DashboardStatsProps {
     reports: Report[];
@@ -41,13 +41,13 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ reports }) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {stats.map((stat, index) => (
-                <div key={index} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02]">
+                <div key={index} className="bg-card p-6 rounded-xl border border-border shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02]">
                     <div className={`p-3 rounded-lg ${stat.color} dark:bg-opacity-20`}>
                         <stat.icon size={24} />
                     </div>
                     <div>
-                        <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-0.5">{stat.label}</div>
-                        <div className="text-2xl font-bold text-slate-800 dark:text-white">{stat.value}</div>
+                        <div className="text-sm font-medium text-muted-foreground mb-0.5">{stat.label}</div>
+                        <div className="text-2xl font-bold text-foreground">{stat.value}</div>
                     </div>
                 </div>
             ))}

@@ -3,7 +3,7 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart, Bar, Legend, PieChart, Pie, Cell
 } from 'recharts';
-import { Report, ReportStatus } from '../../services/fir/types';
+import { Report, ReportStatus } from '@/types/fir';
 import { CheckCircle, XCircle, TrendingUp, Activity } from 'lucide-react';
 
 interface AnalyticsViewProps {
@@ -79,56 +79,56 @@ export function AnalyticsView({ reports }: AnalyticsViewProps) {
     }, [reports]);
 
     return (
-        <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-6 md:p-10">
+        <div className="flex-1 overflow-y-auto bg-muted/20 p-6 md:p-10">
             <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* Header */}
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Analytics Dashboard</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Insights into performance, trends, and report distribution.</p>
+                    <h1 className="text-3xl font-bold text-foreground mb-2">Analytics Dashboard</h1>
+                    <p className="text-muted-foreground">Insights into performance, trends, and report distribution.</p>
                 </div>
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium text-sm">Total Reports</span>
-                            <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg"><Activity size={20} /></div>
+                            <span className="text-muted-foreground font-medium text-sm">Total Reports</span>
+                            <div className="p-2 bg-primary/10 text-primary rounded-lg"><Activity size={20} /></div>
                         </div>
-                        <div className="text-3xl font-bold text-slate-900 dark:text-white">{stats.total}</div>
+                        <div className="text-3xl font-bold text-foreground">{stats.total}</div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium text-sm">Positive Rate</span>
-                            <div className="p-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg"><TrendingUp size={20} /></div>
+                            <span className="text-muted-foreground font-medium text-sm">Positive Rate</span>
+                            <div className="p-2 bg-green-500/10 text-green-600 rounded-lg"><TrendingUp size={20} /></div>
                         </div>
-                        <div className="text-3xl font-bold text-slate-900 dark:text-white">{stats.positiveRate}%</div>
-                        <div className="text-xs text-slate-400 mt-1">of total reports</div>
+                        <div className="text-3xl font-bold text-foreground">{stats.positiveRate}%</div>
+                        <div className="text-xs text-muted-foreground mt-1">of total reports</div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium text-sm">Positive Reports</span>
-                            <div className="p-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg"><CheckCircle size={20} /></div>
+                            <span className="text-muted-foreground font-medium text-sm">Positive Reports</span>
+                            <div className="p-2 bg-green-500/10 text-green-600 rounded-lg"><CheckCircle size={20} /></div>
                         </div>
-                        <div className="text-3xl font-bold text-slate-900 dark:text-white">{stats.positive}</div>
+                        <div className="text-3xl font-bold text-foreground">{stats.positive}</div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium text-sm">Negative Reports</span>
-                            <div className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg"><XCircle size={20} /></div>
+                            <span className="text-muted-foreground font-medium text-sm">Negative Reports</span>
+                            <div className="p-2 bg-destructive/10 text-destructive rounded-lg"><XCircle size={20} /></div>
                         </div>
-                        <div className="text-3xl font-bold text-slate-900 dark:text-white">{stats.negative}</div>
+                        <div className="text-3xl font-bold text-foreground">{stats.negative}</div>
                     </div>
                 </div>
 
                 {/* Charts Row 1 */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Activity Trend */}
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Activity Trends (Last 7 Days)</h3>
+                    <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
+                        <h3 className="text-lg font-bold text-foreground mb-6">Activity Trends (Last 7 Days)</h3>
                         <div className="h-80">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={trendData}>
@@ -146,7 +146,7 @@ export function AnalyticsView({ reports }: AnalyticsViewProps) {
                                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                                     <Tooltip
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: '#1e293b' }}
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }}
                                     />
                                     <Area type="monotone" dataKey="positive" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#colorPos)" name="Positive" />
                                     <Area type="monotone" dataKey="negative" stroke="#EF4444" strokeWidth={2} fillOpacity={1} fill="url(#colorNeg)" name="Negative" />
@@ -156,8 +156,8 @@ export function AnalyticsView({ reports }: AnalyticsViewProps) {
                     </div>
 
                     {/* Status Distribution */}
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Report Status Distribution</h3>
+                    <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
+                        <h3 className="text-lg font-bold text-foreground mb-6">Report Status Distribution</h3>
                         <div className="h-80">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -174,7 +174,7 @@ export function AnalyticsView({ reports }: AnalyticsViewProps) {
                                             <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name as ReportStatus] || COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
-                                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: '#1e293b' }} />
+                                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
                                     <Legend verticalAlign="bottom" height={36} iconType="circle" />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -183,15 +183,15 @@ export function AnalyticsView({ reports }: AnalyticsViewProps) {
                 </div>
 
                 {/* Charts Row 2 */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Top Categories by Type</h3>
+                <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
+                    <h3 className="text-lg font-bold text-foreground mb-6">Top Categories by Type</h3>
                     <div className="h-80">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={categoryData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" strokeOpacity={0.1} />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: '#1e293b' }} />
+                                <Tooltip cursor={{ fill: 'hsl(var(--muted)/.2)' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
                                 <Legend />
                                 <Bar dataKey="positive" name="Positive" fill="#10B981" radius={[4, 4, 0, 0]} maxBarSize={50} />
                                 <Bar dataKey="negative" name="Negative" fill="#EF4444" radius={[4, 4, 0, 0]} maxBarSize={50} />

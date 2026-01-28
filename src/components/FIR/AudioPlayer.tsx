@@ -75,13 +75,13 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 flex items-center gap-3 w-full max-w-md transition-all hover:shadow-md">
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-3 flex items-center gap-3 w-full max-w-md transition-all hover:shadow-md">
             <audio ref={audioRef} src={src} preload="metadata" />
 
             <button
                 onClick={togglePlay}
-                className={`w-10 h-10 flex items-center justify-center rounded-full text-white shadow-lg transition-transform active:scale-95 shrink-0
-          ${isPlaying ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-indigo-500 hover:bg-indigo-600'}`}
+                className={`w-10 h-10 flex items-center justify-center rounded-full text-primary-foreground shadow-lg transition-transform active:scale-95 shrink-0
+          ${isPlaying ? 'bg-primary hover:bg-primary/90' : 'bg-primary/90 hover:bg-primary'}`}
             >
                 {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
             </button>
@@ -92,7 +92,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
                     {[...Array(20)].map((_, i) => (
                         <div
                             key={i}
-                            className={`w-1 rounded-full transition-all duration-300 ${isPlaying ? 'bg-indigo-400 animate-pulse' : 'bg-slate-200'}`}
+                            className={`w-1 rounded-full transition-all duration-300 ${isPlaying ? 'bg-primary animate-pulse' : 'bg-muted'}`}
                             style={{
                                 height: isPlaying ? `${Math.max(20, Math.random() * 100)}%` : '30%',
                                 animationDelay: `${i * 0.05}s`
@@ -102,11 +102,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-medium text-slate-500 w-8 text-right">{formatTime(audioRef.current?.currentTime || 0)}</span>
+                    <span className="text-[10px] font-medium text-muted-foreground w-8 text-right">{formatTime(audioRef.current?.currentTime || 0)}</span>
 
-                    <div className="relative flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden group">
+                    <div className="relative flex-1 h-1.5 bg-muted rounded-full overflow-hidden group">
                         <div
-                            className="absolute top-0 left-0 h-full bg-indigo-500 rounded-full transition-all duration-100"
+                            className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all duration-100"
                             style={{ width: `${progress}%` }}
                         />
                         <input
@@ -119,11 +119,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
                         />
                     </div>
 
-                    <span className="text-[10px] font-medium text-slate-400 w-8">{formatTime(duration)}</span>
+                    <span className="text-[10px] font-medium text-muted-foreground/60 w-8">{formatTime(duration)}</span>
                 </div>
             </div>
 
-            <button onClick={toggleMute} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-50 transition">
+            <button onClick={toggleMute} className="text-muted-foreground hover:text-foreground p-1.5 rounded-full hover:bg-muted transition">
                 {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
             </button>
         </div>

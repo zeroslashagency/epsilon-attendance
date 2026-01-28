@@ -48,7 +48,19 @@ export function CallLogsTable({ recordings }: CallLogsTableProps) {
         .filter((v, i, a) => a.findIndex(t => t.id === v.id) === i)
         .sort((a, b) => {
             if (sortBy === 'date') {
-                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                const timeA = new Date(a.start_time).getTime();
+                const timeB = new Date(b.start_time).getTime();
+                const now = Date.now();
+
+                // Push future dates (likely timezone bugs) to the bottom
+                // Use a 5-minute buffer to account for slight clock skews
+                const isFutureA = timeA > (now + 300000);
+                const isFutureB = timeB > (now + 300000);
+
+                if (isFutureA && !isFutureB) return 1;
+                if (!isFutureA && isFutureB) return -1;
+
+                return timeB - timeA;
             }
             return b.duration_seconds - a.duration_seconds;
         });
@@ -252,7 +264,7 @@ export function CallLogsTable({ recordings }: CallLogsTableProps) {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                                        {formatDistanceToNow(new Date(recording.created_at), { addSuffix: true })}
+                                        {formatDistanceToNow(new Date(recording.start_time), { addSuffix: true })}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                         {recording.latitude && recording.longitude ? (

@@ -8,10 +8,12 @@ import {
     Clock, Mic, FileText, XCircle, ShieldCheck, RotateCcw,
     Camera, Paperclip, X, User as UserIcon
 } from 'lucide-react';
+import { USER_ROLES } from '@/config/roles';
 import { reportService } from '../../services/fir/reportService';
 import { AudioPlayer } from './AudioPlayer';
 import { supabase } from '@/lib/supabase';
 import { AudioRecorder } from './AudioRecorder';
+import { MessageTimeline } from './MessageTimeline';
 
 interface ReportDetailProps {
     report: Report;
@@ -68,19 +70,19 @@ const WorkflowStepper = ({ report, currentUser }: { report: Report, currentUser:
                         <div className="flex flex-col items-center relative z-10 min-w-[100px]">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300 mb-1
                 ${isCompleted ? 'bg-indigo-600 border-indigo-600 text-white' :
-                                    isActive ? 'bg-white border-indigo-600 text-indigo-600' : 'bg-slate-100 border-slate-300 text-slate-400'}`}>
+                                    isActive ? 'bg-background border-primary text-primary' : 'bg-muted border-border text-muted-foreground'}`}>
                                 {isCompleted ? <CheckCircle2 size={16} /> : stepNum}
                             </div>
 
-                            <span className={`text-[10px] uppercase font-bold tracking-wider ${isActive || isCompleted ? 'text-indigo-900' : 'text-slate-400'}`}>
+                            <span className={`text-[10px] uppercase font-bold tracking-wider ${isActive || isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
                                 {step.label}
                             </span>
-                            <span className={`text-xs font-semibold truncate max-w-[90px] ${isActive || isCompleted ? 'text-slate-800' : 'text-slate-300'}`}>
+                            <span className={`text-xs font-semibold truncate max-w-[90px] ${isActive || isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
                                 {step.name}
                             </span>
                         </div>
                         {idx < steps.length - 1 && (
-                            <div className={`flex-1 h-0.5 mx-2 -mt-6 transition-colors duration-300 min-w-[20px] ${isCompleted ? 'bg-indigo-600' : 'bg-slate-200'}`} />
+                            <div className={`flex-1 h-0.5 mx-2 -mt-6 transition-colors duration-300 min-w-[20px] ${isCompleted ? 'bg-primary' : 'bg-border'}`} />
                         )}
                     </React.Fragment>
                 );
@@ -203,24 +205,24 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
 
     // Check permissions
     const canRespond = report.status === ReportStatus.PersonResponse || report.status === ReportStatus.Reported;
-    const canAdminReview = report.status === ReportStatus.SuperAdminReview && currentUser.role === 'Super Admin';
+    const canAdminReview = report.status === ReportStatus.SuperAdminReview && currentUser.role === USER_ROLES.SUPER_ADMIN;
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-slate-900 md:rounded-l-none md:rounded-r-2xl overflow-hidden shadow-xl md:shadow-none">
+        <div className="flex flex-col h-full bg-background md:rounded-l-none md:rounded-r-2xl overflow-hidden shadow-xl md:shadow-none">
             {/* Header */}
-            <div className="p-6 border-b bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 sticky top-0 z-20">
+            <div className="p-6 border-b bg-background border-border sticky top-0 z-20">
                 <div className="flex justify-between items-start mb-4">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-mono text-slate-400">{report.id.substring(0, 8)}...</span>
+                            <span className="text-xs font-mono text-muted-foreground">{report.id.substring(0, 8)}...</span>
                             <PriorityBadge priority={report.priority} />
-                            <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded text-xs font-medium">{report.category}</span>
+                            <span className="px-2 py-0.5 bg-muted text-muted-foreground border border-border rounded text-xs font-medium">{report.category}</span>
                         </div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">{report.title}</h1>
+                        <h1 className="text-2xl font-bold text-foreground leading-tight">{report.title}</h1>
                     </div>
                     <div className="text-right">
-                        <div className="text-xs text-slate-500 mb-1">Status</div>
-                        <div className={`text-sm font-bold ${report.status === ReportStatus.Closed ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'
+                        <div className="text-xs text-muted-foreground mb-1">Status</div>
+                        <div className={`text-sm font-bold ${report.status === ReportStatus.Closed ? 'text-status-present' : 'text-primary'
                             }`}>
                             {report.status}
                         </div>
@@ -229,10 +231,10 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
 
                 <WorkflowStepper report={report} currentUser={currentUser} />
 
-                <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border">
                     <div className="flex items-center gap-2">
                         <UserIcon size={16} />
-                        <span>Created By: <strong className="text-slate-700 dark:text-slate-200">{report.reporter.name}</strong></span>
+                        <span>Created By: <strong className="text-foreground">{report.reporter.name}</strong></span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Clock size={16} />
@@ -242,12 +244,12 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-slate-50/50 dark:bg-slate-950/50">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-muted/20">
 
                 {/* Description & Media */}
-                <section className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide mb-3">Description</h3>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{report.description}</p>
+                <section className="bg-background p-5 rounded-xl shadow-sm border border-border">
+                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-3">Description</h3>
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{report.description}</p>
 
                     {report.attachments.length > 0 && (
                         <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -255,9 +257,9 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
                                 <div
                                     key={att.id}
                                     className={`relative group rounded-lg overflow-hidden flex items-center justify-center
-                    ${att.type === 'audio'
+                                    ${att.type === 'audio'
                                             ? 'col-span-2 md:col-span-3 w-full bg-transparent p-0'
-                                            : 'border border-slate-200 dark:border-slate-700 aspect-square bg-slate-100 dark:bg-slate-800'
+                                            : 'border border-border aspect-square bg-muted'
                                         }`}
                                 >
                                     {att.type === 'image' ? (
@@ -267,7 +269,7 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
                                             <AudioPlayer src={att.url} />
                                         </div>
                                     ) : (
-                                        <div className="text-slate-400 flex flex-col items-center">
+                                        <div className="text-muted-foreground flex flex-col items-center">
                                             <FileText size={24} className="mb-2" />
                                             <span className="text-xs">Document</span>
                                         </div>
@@ -278,22 +280,25 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
                     )}
                 </section>
 
+                {/* Chat / Timeline */}
+                <MessageTimeline reportId={report.id} currentUser={currentUser} />
+
                 {/* Responses & Decisions */}
                 {(report.response_comment || report.final_decision || report.status === ReportStatus.Closed) && (
-                    <section className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 space-y-4">
-                        <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide mb-1">Workflow Activity</h3>
+                    <section className="bg-background p-5 rounded-xl shadow-sm border border-border space-y-4">
+                        <h3 className="text-sm font-bold text-foreground uppercase tracking-wide mb-1">Workflow Activity</h3>
 
                         {report.response_comment && (
-                            <div className="p-3 rounded-lg border bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800">
+                            <div className="p-3 rounded-lg border bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30">
                                 <div className="flex justify-between items-center mb-1">
-                                    <span className="font-bold text-xs uppercase text-blue-700 dark:text-blue-300">Person Response</span>
+                                    <span className="font-bold text-xs uppercase text-blue-700 dark:text-blue-400">Person Response</span>
                                 </div>
-                                <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{report.response_comment}</p>
+                                <p className="text-sm text-foreground mt-1">{report.response_comment}</p>
 
                                 {report.response_attachments && report.response_attachments.length > 0 && (
                                     <div className="mt-3 grid grid-cols-2 gap-2">
                                         {report.response_attachments.map(att => (
-                                            <div key={att.id} className="relative group rounded-lg overflow-hidden border border-blue-200 dark:border-blue-800 bg-white dark:bg-slate-800">
+                                            <div key={att.id} className="relative group rounded-lg overflow-hidden border border-blue-200 dark:border-blue-800 bg-background">
                                                 {att.type === 'image' ? (
                                                     <img src={att.url} alt={att.name} className="w-full h-32 object-cover" />
                                                 ) : att.type === 'audio' ? (
@@ -301,7 +306,7 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
                                                         <AudioPlayer src={att.url} />
                                                     </div>
                                                 ) : (
-                                                    <div className="p-4 flex items-center gap-2 text-slate-500">
+                                                    <div className="p-4 flex items-center gap-2 text-muted-foreground">
                                                         <Paperclip size={16} />
                                                         <span className="text-xs truncate">{att.name}</span>
                                                     </div>
@@ -314,23 +319,23 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
                         )}
 
                         {report.final_decision && (
-                            <div className={`p-3 rounded-lg border ${report.final_decision === 'CONFIRMED' ? 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800' : 'bg-orange-50 dark:bg-orange-900/20 border-orange-100 dark:border-orange-800'}`}>
+                            <div className={`p-3 rounded-lg border ${report.final_decision === 'CONFIRMED' ? 'bg-status-present/10 border-status-present/20' : 'bg-status-high/10 border-status-high/20'}`}>
                                 <div className="flex justify-between items-center mb-1">
-                                    <span className={`font-bold text-xs uppercase ${report.final_decision === 'CONFIRMED' ? 'text-green-700 dark:text-green-400' : 'text-orange-700 dark:text-orange-400'}`}>
+                                    <span className={`font-bold text-xs uppercase ${report.final_decision === 'CONFIRMED' ? 'text-status-present' : 'text-status-high'}`}>
                                         Admin Decision: {report.final_decision}
                                     </span>
-                                    <span className="text-xs text-slate-500">by {report.closed_by}</span>
+                                    <span className="text-xs text-muted-foreground">by {report.closed_by}</span>
                                 </div>
-                                {report.stage3?.notes && <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{report.stage3.notes}</p>}
+                                {report.stage3?.notes && <p className="text-sm text-foreground mt-1">{report.stage3.notes}</p>}
                             </div>
                         )}
 
                         {report.status === ReportStatus.Closed && (
-                            <div className="p-3 rounded-lg border bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 flex items-center justify-center">
-                                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                    <CheckCircle2 size={18} className="text-green-600 dark:text-green-500" />
+                            <div className="p-3 rounded-lg border bg-muted/30 border-border flex items-center justify-center">
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                    <CheckCircle2 size={18} className="text-status-present" />
                                     <span className="font-bold text-sm uppercase tracking-wide">Ticket Closed</span>
-                                    {report.closed_at && <span className="text-xs text-slate-400">• {new Date(report.closed_at).toLocaleDateString()}</span>}
+                                    {report.closed_at && <span className="text-xs text-muted-foreground/60">• {new Date(report.closed_at).toLocaleDateString()}</span>}
                                 </div>
                             </div>
                         )}
@@ -342,32 +347,32 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
             {/* Footer Action Area - Only show if user needs to take action */}
             {report.status !== ReportStatus.Closed && (
                 (report.status === ReportStatus.PersonResponse && (report.assignedTo.id === currentUser.id || report.assignedTo.name === currentUser.name)) ||
-                (report.status === ReportStatus.SuperAdminReview && currentUser.role === 'Super Admin') ||
+                (report.status === ReportStatus.SuperAdminReview && currentUser.role === USER_ROLES.SUPER_ADMIN) ||
                 (report.status === ReportStatus.Reported && (report.assignedTo.id === currentUser.id || report.assignedTo.name === currentUser.name))
             ) && (
-                    <div className="p-4 bg-white dark:bg-slate-900 border-t dark:border-slate-800 sticky bottom-0 z-20">
+                    <div className="p-4 bg-background border-t border-border sticky bottom-0 z-20">
                         <div className="flex gap-2 mb-3 flex-col">
                             <textarea
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 placeholder={showRejectInput ? "Reason for rejection (Required)..." : "Add a note..."}
-                                className={`w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none h-20 transition-colors text-slate-900 dark:text-white placeholder-slate-400
-                 ${showRejectInput ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/10 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700'}`}
+                                className={`w-full px-3 py-2 bg-muted/30 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-none h-20 transition-colors text-foreground placeholder-muted-foreground
+                 ${showRejectInput ? 'border-status-absent/30 bg-status-absent/5 focus:ring-status-absent/40' : 'border-border'}`}
                             />
 
                             {showRejectInput && (
                                 <div className="space-y-3">
                                     <div className="flex gap-2 overflow-x-auto py-2">
                                         {responseAttachments.map(att => (
-                                            <div key={att.id} className="relative flex-shrink-0 w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center group">
+                                            <div key={att.id} className="relative flex-shrink-0 w-20 h-20 bg-muted rounded-lg border border-border flex items-center justify-center group">
                                                 {att.type === 'image' ? (
                                                     <img src={att.url} className="w-full h-full object-cover rounded-lg" />
                                                 ) : (
-                                                    <Mic size={20} className="text-slate-400" />
+                                                    <Mic size={20} className="text-muted-foreground" />
                                                 )}
                                                 <button
                                                     onClick={() => removeAttachment(att.id)}
-                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="absolute -top-2 -right-2 bg-status-absent text-white rounded-full p-0.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
                                                 >
                                                     <X size={12} />
                                                 </button>
@@ -378,7 +383,7 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
                                     <div className="flex gap-2">
                                         <AudioRecorder onSave={handleAudioSave} />
 
-                                        <label className="cursor-pointer p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 transition-colors">
+                                        <label className="cursor-pointer p-2 rounded-full bg-muted hover:bg-muted/70 text-muted-foreground transition-colors">
                                             <Camera size={20} />
                                             <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
                                         </label>
@@ -396,14 +401,14 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
                                         <>
                                             <button
                                                 onClick={() => setShowRejectInput(false)}
-                                                className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-sm font-medium"
+                                                className="px-4 py-2 text-muted-foreground hover:bg-muted rounded-lg text-sm font-medium"
                                             >
                                                 Cancel
                                             </button>
                                             <button
                                                 onClick={() => handleResponse(false)}
                                                 disabled={isSubmitting || !comment.trim()}
-                                                className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg text-sm font-semibold shadow-md"
+                                                className="px-4 py-2 bg-status-absent text-white hover:bg-status-absent/90 rounded-lg text-sm font-semibold shadow-md"
                                             >
                                                 Confirm Reject
                                             </button>
@@ -413,14 +418,14 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
                                             <button
                                                 onClick={() => setShowRejectInput(true)}
                                                 disabled={isSubmitting}
-                                                className="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-sm font-semibold transition flex items-center gap-2"
+                                                className="px-4 py-2 bg-status-absent/10 text-status-absent hover:bg-status-absent/20 border border-status-absent/20 rounded-lg text-sm font-semibold transition flex items-center gap-2"
                                             >
                                                 <XCircle size={16} /> Reject
                                             </button>
                                             <button
                                                 onClick={() => handleResponse(true)}
                                                 disabled={isSubmitting}
-                                                className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-200 dark:shadow-indigo-900/30 rounded-lg text-sm font-semibold transition flex items-center gap-2"
+                                                className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 rounded-lg text-sm font-semibold transition flex items-center gap-2"
                                             >
                                                 <CheckCircle2 size={16} /> Accept
                                             </button>
@@ -435,14 +440,14 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onUpdate, cu
                                     <button
                                         onClick={() => handleAdminReview('SEND_BACK')}
                                         disabled={isSubmitting}
-                                        className="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30 border border-orange-200 dark:border-orange-800 rounded-lg text-sm font-semibold transition flex items-center gap-2"
+                                        className="px-4 py-2 bg-status-high/10 text-status-high hover:bg-status-high/20 border border-status-high/20 rounded-lg text-sm font-semibold transition flex items-center gap-2"
                                     >
                                         <RotateCcw size={16} /> Send Back
                                     </button>
                                     <button
                                         onClick={() => handleAdminReview('CONFIRM')}
                                         disabled={isSubmitting}
-                                        className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 shadow-md rounded-lg text-sm font-semibold transition flex items-center gap-2"
+                                        className="px-4 py-2 bg-status-low text-white hover:bg-status-low/90 shadow-md rounded-lg text-sm font-semibold transition flex items-center gap-2"
                                     >
                                         <ShieldCheck size={16} /> Confirm & Close
                                     </button>

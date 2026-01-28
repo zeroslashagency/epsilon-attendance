@@ -1,0 +1,100 @@
+{
+  "date": "2026-01-26",
+  "test_summary": {
+    "flutter_analyze": "pass",
+    "flutter_test": "pass"
+  },
+  "coverage_report": {
+    "status": "not_run",
+    "details": "No coverage percentages available"
+  },
+  "bug_report": [
+    {
+      "id": 1,
+      "title": "Call log query fails on some Android devices",
+      "severity": "high",
+      "status": "fixed",
+      "symptom": "IllegalArgumentException: Invalid token LIMIT",
+      "reproduction": [
+        "Install app on an Android device that rejects inline LIMIT in ContentResolver sort order",
+        "Trigger call log fetch (Device Monitoring sync or call-ended event)",
+        "Observe logcat error: Error fetching call logs + Invalid token LIMIT"
+      ],
+      "root_cause": "Inline LIMIT in sort order not supported by all CallLog providers",
+      "fix": {
+        "summary": "Use QUERY_ARG_LIMIT on API 26+ and fallback to sorted query for older APIs",
+        "files": [
+          "mobile/android/app/src/main/kotlin/com/zeroslashagency/attendr_mobile/DeviceMonitoringChannelHandler.kt:282",
+          "mobile/android/app/src/main/kotlin/com/zeroslashagency/attendr_mobile/CallStateReceiver.kt:239"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "title": "Deprecated color API used in sensor health UI",
+      "severity": "low",
+      "status": "fixed",
+      "symptom": "Flutter analyzer warns about deprecated withOpacity",
+      "reproduction": [
+        "Run flutter analyze",
+        "Observe deprecation warning for withOpacity usage"
+      ],
+      "root_cause": "Deprecated Flutter API used for alpha adjustment",
+      "fix": {
+        "summary": "Replace withOpacity with withValues(alpha: 0.1)",
+        "files": [
+          "mobile/lib/screens/sensor_health_screen.dart:123"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "title": "Possible device event loss on crash between native queue read and Flutter consumption",
+      "severity": "medium",
+      "status": "open",
+      "symptom": "Device events may be dropped if the app crashes after queue is cleared",
+      "reproduction": [
+        "Trigger device events (screen on/off, unlock)",
+        "Call getPendingEvents while simulating an app crash before Flutter persists them",
+        "Observe missing events after restart"
+      ],
+      "root_cause": "Native queue is cleared immediately after read, before confirmed processing",
+      "evidence": [
+        "mobile/android/app/src/main/kotlin/com/zeroslashagency/attendr_mobile/DeviceMonitoringChannelHandler.kt:64"
+      ],
+      "suggested_fix": "Only clear after Flutter acknowledges receipt or keep a retryable buffer"
+    },
+    {
+      "id": 4,
+      "title": "Monitoring disabled still collects live data on screen load",
+      "severity": "low",
+      "status": "open",
+      "symptom": "Live data refresh runs when Usage Access is granted, even if monitoring is disabled",
+      "reproduction": [
+        "Disable monitoring",
+        "Open Device Monitoring screen",
+        "Observe refreshAllData calls on init"
+      ],
+      "root_cause": "DeviceMonitoringScreen.initState calls refreshAllData without checking isEnabled",
+      "evidence": [
+        "mobile/lib/screens/device_monitoring/device_monitoring_screen.dart:31"
+      ],
+      "suggested_fix": "Guard refresh by provider.isEnabled"
+    }
+  ],
+  "execution_log": [
+    "flutter analyze (mobile): pass",
+    "flutter test (mobile): pass"
+  ],
+  "recommendations": [
+    "Add targeted tests for call-log error handling and permission-denied paths",
+    "Capture coverage with flutter test --coverage",
+    "Add UI-level permission deep links for Bluetooth/Wi-Fi/Call Logs",
+    "Add an acknowledgement handshake to prevent device event loss on crash",
+    "Guard live data refreshes when monitoring is disabled"
+  ],
+  "visual_bugs": {
+    "status": "not_captured",
+    "notes": "Screenshots required for visual issues; capture Device Monitoring warning UI, permission screen, and sensor health list"
+  ]
+}

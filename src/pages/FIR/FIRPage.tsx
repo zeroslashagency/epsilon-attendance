@@ -1,87 +1,137 @@
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { User } from '@/types/fir';
+import { useFIRStore, FIRView } from '@/hooks/fir/useFIRStore';
+import { DashboardView } from '@/components/FIR/DashboardView';
+import { ReportsView } from '@/components/FIR/ReportsView';
+import { CategoryManager } from '@/components/FIR/CategoryManager';
+import { AnalyticsView } from '@/components/FIR/AnalyticsView';
+import { FARModal } from '@/components/FIR/FARModal';
+import { useSearchParams } from 'react-router-dom'; // Assuming react-router based on src/pages structure
+// If proper routing hook is needed, adapt accordingly. The source used next/navigation.
+// Since this is Vite + React, I'll use a local state or checking window.location if router isn't clear.
+// But mostly these projects use 'react-router-dom'. I'll check package.json if unsure.
+// For now I'll use standard window params or just state if no router.
+// Actually, let's stick to simple state if we can, but the source synced with URL.
+// I will implement URL syncing using window.history.pushState for now to avoid dependency assumptions if possible,
+// or just standard React state.
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
-import { AlertCircle, CheckCircle2, Clock, XCircle } from "lucide-react";
+export default function FIRPage() {
+    // Auth State
+    const { user, isAuthenticated, loading: authLoading, employeeName, role } = useAuth();
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-/**
- * FIR (First Information Report) Dashboard Page
- * Features a stats overview and recent reports
- */
-const FIRPage = () => {
-    const { employeeName } = useAuth();
+    // Manual profile construction from useAuth
+    useEffect(() => {
+        if (user && employeeName) {
+            setCurrentUser({
+                id: user.id,
+                name: employeeName || 'User',
+                role: (role as any) || 'Reporter',
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(employeeName || 'U')}&background=random`,
+            });
+        }
+    }, [user, employeeName, role]);
 
-    // Mock data for stats - replace with real data fetching later
-    const stats = [
-        { title: "Total Reports", value: "12", icon: AlertCircle, color: "text-blue-600", bg: "bg-blue-100" },
-        { title: "Resolved", value: "8", icon: CheckCircle2, color: "text-green-600", bg: "bg-green-100" },
-        { title: "Pending", value: "3", icon: Clock, color: "text-yellow-600", bg: "bg-yellow-100" },
-        { title: "Rejected", value: "1", icon: XCircle, color: "text-red-600", bg: "bg-red-100" }
-    ];
+    // FIR Store
+    const store = useFIRStore(currentUser);
+
+    // Initial View Sync (Simple implementation without router hook dependency for safety)
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const viewParam = params.get('view') as FIRView | null;
+        if (viewParam && ['dashboard', 'reports', 'categories', 'analytics'].includes(viewParam)) {
+            store.setCurrentView(viewParam);
+        }
+    }, []);
+
+    // Update URL when view changes
+    const handleViewChange = (view: FIRView) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('view', view);
+        window.history.pushState({}, '', url.toString());
+        store.setCurrentView(view);
+    };
+
+    // Handle report submission
+    const handleReportSubmitted = () => {
+        store.loadReports();
+        handleViewChange('reports');
+    };
+
+    // Loading state
+    if (authLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-muted/40">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    // Not authenticated
+    if (!isAuthenticated || !currentUser) {
+        return (
+            <div className="p-10 text-center text-muted-foreground">
+                Please log in to access FIR Reporter.
+            </div>
+        );
+    }
 
     return (
-        <div className="p-6 space-y-6 max-w-7xl mx-auto">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight">FIR Dashboard</h1>
-                <p className="text-muted-foreground">
-                    Welcome back, {employeeName || 'User'}. Here's an overview of mistake reports.
-                </p>
-            </div>
+        <div className="flex flex-col h-[calc(100vh-6rem)] bg-muted/40 overflow-hidden font-sans rounded-xl border border-border shadow-sm">
+            {/* View Selector / Navigation - Optional or integrated in specific views */}
+            {/* Navigation Bar could go here if not provided by layout */}
 
-            {/* Stats Overview */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat, index) => (
-                    <Card key={index} className="card-shadow border-none">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
-                                {stat.title}
-                            </CardTitle>
-                            <div className={`p-2 rounded-full ${stat.bg}`}>
-                                <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stat.value}</div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                +20.1% from last month
-                            </p>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+            {/* Main Content Area */}
+            <main className="flex-1 overflow-hidden relative bg-background">
+                {store.currentView === 'dashboard' && (
+                    <DashboardView
+                        reports={store.reports}
+                        onOpenModal={store.openFARModal}
+                        onSelectReport={store.selectReport}
+                        onNavigateToReports={() => handleViewChange('reports')}
+                    />
+                )}
 
-            {/* Recent Reports Placeholder */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4 card-shadow border-none">
-                    <CardHeader>
-                        <CardTitle>Recent Reports</CardTitle>
-                        <CardDescription>
-                            Recent mistake reports filed in the system.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="h-[300px] flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
-                            No recent activity to display
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="col-span-3 card-shadow border-none">
-                    <CardHeader>
-                        <CardTitle>Quick Actions</CardTitle>
-                        <CardDescription>
-                            Common actions for FIR management
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {/* Add quick action buttons here later */}
-                        <div className="text-sm text-muted-foreground">
-                            Quick actions coming soon...
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                {store.currentView === 'reports' && (
+                    <ReportsView
+                        reports={store.reports}
+                        filteredReports={store.filteredReports}
+                        selectedReportId={store.selectedReportId}
+                        selectedReport={store.selectedReport}
+                        currentUser={currentUser}
+                        filter={store.filter}
+                        isLoading={store.isLoading}
+                        searchQuery={store.searchQuery}
+                        onSelectReport={store.selectReport}
+                        onUpdateReport={store.updateReport}
+                        onOpenModal={store.openFARModal}
+                        onFilterChange={store.setFilter}
+                        onSearchChange={store.setSearchQuery}
+                    />
+                )}
+
+                {store.currentView === 'categories' && (
+                    <div className="h-full overflow-y-auto p-6">
+                        <CategoryManager />
+                    </div>
+                )}
+
+                {store.currentView === 'analytics' && (
+                    <div className="h-full overflow-y-auto p-6">
+                        <AnalyticsView reports={store.reports} />
+                    </div>
+                )}
+            </main>
+
+            {/* FAR Modal */}
+            <FARModal
+                isOpen={store.farModalOpen}
+                onClose={store.closeFARModal}
+                type={store.farModalType}
+                onReportSubmitted={handleReportSubmitted}
+                currentUser={currentUser}
+            />
         </div>
     );
-};
-
-export default FIRPage;
+}

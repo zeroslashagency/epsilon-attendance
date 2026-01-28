@@ -122,10 +122,10 @@ const ReportsPage: React.FC = () => {
   return (
     <div className="flex flex-col md:flex-row h-full overflow-hidden">
       {/* List Pane */}
-      <div className={`${selectedReportId ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-[400px] xl:w-[450px] bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-full`}>
-        <div className="p-5 border-b bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+      <div className={`${selectedReportId ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-[400px] xl:w-[450px] bg-background border-r border-border h-full`}>
+        <div className="p-5 border-b border-border bg-background">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-xl font-bold text-slate-800 dark:text-white">All Reports</h1>
+            <h1 className="text-xl font-bold text-foreground">All Reports</h1>
             <div className="flex gap-2">
               <button
                 onClick={() => handleOpenModal('GOOD')}
@@ -147,41 +147,41 @@ const ReportsPage: React.FC = () => {
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setFilter('All')}
-              className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition ${filter === 'All' ? 'bg-slate-800 dark:bg-slate-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition ${filter === 'All' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/70'}`}
             >
               All
             </button>
             <button
               onClick={() => setFilter('Submitted')}
-              className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition ${filter === 'Submitted' ? 'bg-slate-800 dark:bg-slate-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition ${filter === 'Submitted' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/70'}`}
             >
               Submitted
             </button>
             <button
               onClick={() => setFilter('MyAction')}
-              className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition ${filter === 'MyAction' ? 'bg-slate-800 dark:bg-slate-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition ${filter === 'MyAction' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/70'}`}
             >
               My Action
             </button>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
             <input
               type="text"
               placeholder="Search reports..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-transparent focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-300 rounded-lg text-sm text-slate-900 dark:text-white outline-none transition duration-200 placeholder-slate-500"
+              className="w-full pl-10 pr-4 py-2 rounded-lg text-sm bg-muted/60 text-foreground placeholder:text-muted-foreground border border-transparent outline-none transition duration-200 focus:border-primary/40 focus:bg-background focus:ring-1 focus:ring-primary/20"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-950">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/30">
           {loading ? (
-            <div className="flex justify-center p-10"><Loader2 className="animate-spin text-slate-400" /></div>
+            <div className="flex justify-center p-10"><Loader2 className="animate-spin text-muted-foreground" /></div>
           ) : filteredReports.length === 0 ? (
-            <div className="text-center py-10 text-slate-400 text-sm">No reports found matching criteria.</div>
+            <div className="text-center py-10 text-muted-foreground text-sm">No reports found matching criteria.</div>
           ) : (
             filteredReports.map(report => (
               <ReportCard
@@ -196,15 +196,15 @@ const ReportsPage: React.FC = () => {
       </div>
 
       {/* Detail Pane */}
-      <div className={`${selectedReportId ? 'flex' : 'hidden md:flex'} flex-col flex-1 bg-slate-50/50 dark:bg-slate-950/50 h-full relative`}>
+      <div className={`${selectedReportId ? 'flex' : 'hidden md:flex'} flex-col flex-1 bg-muted/20 h-full relative`}>
         {selectedReport && currentUser ? (
           <div className="h-full flex flex-col">
             {/* Mobile Back Button */}
-            <div className="md:hidden p-4 bg-white dark:bg-slate-900 border-b dark:border-slate-800 flex items-center gap-2 sticky top-0 z-30">
-              <button onClick={() => handleSelectReport(null)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-600 dark:text-slate-300">
+            <div className="md:hidden p-4 bg-background border-b border-border flex items-center gap-2 sticky top-0 z-30">
+              <button onClick={() => handleSelectReport(null)} className="p-1 hover:bg-muted rounded-full text-muted-foreground">
                 <ChevronRight className="rotate-180" size={24} />
               </button>
-              <span className="font-semibold text-slate-800 dark:text-white">Report Details</span>
+              <span className="font-semibold text-foreground">Report Details</span>
             </div>
 
             <ReportDetail
@@ -214,12 +214,12 @@ const ReportsPage: React.FC = () => {
             />
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-slate-400 p-8">
-            <div className="w-20 h-20 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-              <ShieldAlert size={40} className="text-slate-400 dark:text-slate-500" />
+          <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-8">
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
+              <ShieldAlert size={40} className="text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-600 dark:text-slate-300">No Report Selected</h3>
-            <p className="text-center max-w-xs mt-2 text-sm text-slate-500 dark:text-slate-400">Select a report from the list to view details, audit trail, and take action.</p>
+            <h3 className="text-lg font-semibold text-foreground">No Report Selected</h3>
+            <p className="text-center max-w-xs mt-2 text-sm text-muted-foreground">Select a report from the list to view details, audit trail, and take action.</p>
           </div>
         )}
       </div>

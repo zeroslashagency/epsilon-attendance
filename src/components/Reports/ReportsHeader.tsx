@@ -10,7 +10,7 @@ interface ReportsHeaderProps {
 
 export function ReportsHeader({ employee, onExport }: ReportsHeaderProps) {
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="bg-background border-b border-border">
       <div className="container mx-auto p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -18,8 +18,8 @@ export function ReportsHeader({ employee, onExport }: ReportsHeaderProps) {
               {employee.name.split(' ').map(n => n[0]).join('')}
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Attendance Reports</h1>
-              <p className="text-gray-600">{employee.name} • {employee.employeeCode}</p>
+              <h1 className="text-xl font-bold text-foreground">Attendance Reports</h1>
+              <p className="text-muted-foreground">{employee.name} • {employee.employeeCode}</p>
             </div>
           </div>
           
@@ -50,5 +50,4 @@ export function ReportsHeader({ employee, onExport }: ReportsHeaderProps) {
     </div>
   );
 }
-
 

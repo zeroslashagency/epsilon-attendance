@@ -108,7 +108,7 @@ describe('useAttendanceData', () => {
         );
 
         await waitFor(() => {
-            expect(result.current.error).toContain('Invalid employee code');
+            expect(result.current.error).toContain('Employee code');
         });
     });
 });

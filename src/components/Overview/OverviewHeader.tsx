@@ -145,7 +145,7 @@ export function OverviewHeader({ employee, stats, attendanceData = {} }: Overvie
                       className={`w-full rounded-t transition-all duration-300 hover:opacity-80 ${
                         height === 100 ? 'bg-green-600' : 
                         height === 80 ? 'bg-yellow-500' : 
-                        height === 0 ? 'bg-gray-300' : 
+                        height === 0 ? 'bg-muted' : 
                         'bg-green-500'
                       }`}
                       style={{ 
@@ -196,5 +196,4 @@ export function OverviewHeader({ employee, stats, attendanceData = {} }: Overvie
     </div>
   );
 }
-
 

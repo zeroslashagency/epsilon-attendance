@@ -4,9 +4,10 @@ import { cn } from "@/lib/utils";
 import { getNavigationTabs } from "@/config/features";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Bell, BellOff } from "lucide-react";
+import { NotificationPopover } from "@/components/Notifications/NotificationPopover";
 import { DeviceStatus } from "@/components/DeviceStatus";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import ProfileDropdown from "@/components/kokonutui/profile-dropdown";
 import { toast } from "sonner";
 
 interface MainLayoutProps {
@@ -31,6 +32,18 @@ export function MainLayout({ children }: MainLayoutProps) {
   const tabs = getNavigationTabs();
 
   useEffect(() => {
+    const path = location.pathname;
+    if (path === '/' || path.includes('/attendance')) setActiveTab('attendance');
+    else if (path.includes('/overview')) setActiveTab('overview');
+    else if (path.includes('/calendar')) setActiveTab('calendar');
+    else if (path.includes('/reports')) setActiveTab('reports');
+    else if (path.includes('/operations')) setActiveTab('operations');
+    else if (path.includes('/call-recordings')) setActiveTab('calls');
+    else if (path.includes('/device-monitoring')) setActiveTab('device monitoring');
+    else if (path.includes('/notifications')) setActiveTab('notifications');
+  }, [location.pathname]);
+
+  useEffect(() => {
     if ('Notification' in window) {
       setNotificationPermission(Notification.permission);
 
@@ -42,7 +55,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       };
 
       // Check permission periodically (some browsers don't fire events)
-      const interval = setInterval(checkPermission, 1000);
+      const interval = setInterval(checkPermission, 5000);
 
       return () => clearInterval(interval);
     }
@@ -170,37 +183,18 @@ export function MainLayout({ children }: MainLayoutProps) {
               <DeviceStatus />
             </div>
 
-            {/* User Info, Notifications, Theme Toggle and Logout */}
+            {/* User Info, Notifications, Theme Toggle */}
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-2 text-sm">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">
-                  {employeeName || 'Employee'}
-                </span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNotificationToggle}
-                className="flex items-center gap-2"
-                title={notificationPermission === 'granted' ? 'Notifications enabled' : 'Enable notifications'}
-              >
-                {notificationPermission === 'granted' ? (
-                  <Bell className="h-4 w-4 text-green-600" />
-                ) : (
-                  <BellOff className="h-4 w-4" />
-                )}
-              </Button>
+              <NotificationPopover />
               <ThemeToggle />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
+              <ProfileDropdown
+                data={{
+                  name: employeeName || 'Employee',
+                  email: employeeCode || 'EMP000',
+                  avatar: "" // Can add actual avatar URL if available in useAuth
+                }}
+                onLogout={handleLogout}
+              />
             </div>
           </div>
 

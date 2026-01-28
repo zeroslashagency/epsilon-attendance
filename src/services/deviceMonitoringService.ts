@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { buildRealtimeEventKey, createEventDeduper } from "@/utils/realtime";
 
 // Types for device monitoring data
 export interface ScreenTimeLog {
@@ -328,9 +329,9 @@ export async function fetchDeviceEvents(
 }
 
 /**
- * Get today's overview summary
+ * Get daily overview summary (default to today)
  */
-export async function fetchTodaySummary(): Promise<{
+export async function fetchDailySummary(dateStr?: string): Promise<{
     screenTime: ScreenTimeSummary;
     topApps: AppUsageSummary[];
     categoryBreakdown: CategorySummary[];
@@ -338,16 +339,16 @@ export async function fetchTodaySummary(): Promise<{
     bluetoothDevices: number;
     storageUsage?: StorageLog;
 }> {
-    const today = getTodayDate();
+    const targetDate = dateStr || getTodayDate();
 
     try {
         // Fetch all data in parallel
         const [screenTime, appUsage, network, bluetooth, storageLogs] = await Promise.all([
-            fetchScreenTimeLogs(today, today),
-            fetchAppUsageLogs(today, today),
-            fetchNetworkLogs(today, today),
-            fetchBluetoothLogs(today, today),
-            fetchStorageLogs(today, today),
+            fetchScreenTimeLogs(targetDate, targetDate),
+            fetchAppUsageLogs(targetDate, targetDate),
+            fetchNetworkLogs(targetDate, targetDate),
+            fetchBluetoothLogs(targetDate, targetDate),
+            fetchStorageLogs(targetDate, targetDate),
         ]);
 
         // Calculate screen time summary
@@ -493,6 +494,56 @@ export async function fetchScreenTimeByEmployee(
     }
 }
 
+
+
+/**
+ * Fetch screen time history (daily totals) for the last 7 days
+ */
+export async function fetchScreenTimeHistory(days: number = 7): Promise<Array<{ date: string; totalMinutes: number; unlockCount: number }>> {
+    const endDate = getTodayDate();
+    const startDate = getDateDaysAgo(days);
+
+    try {
+        // We fetch logs for the range
+        const logs = await fetchScreenTimeLogs(startDate, endDate);
+
+        // Aggregate by date
+        const dateMap = new Map<string, { totalMinutes: number; unlockCount: number }>();
+
+        // Initialize all dates in range with 0 (fill gaps)
+        for (let i = 0; i < days; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0]; // YYYY-MM-DD
+            dateMap.set(dateStr, { totalMinutes: 0, unlockCount: 0 });
+        }
+
+        for (const log of logs) {
+            // log.log_date should be YYYY-MM-DD string
+            // Normalize just in case
+            const dateStr = log.log_date.split('T')[0];
+            const existing = dateMap.get(dateStr);
+            if (existing) {
+                existing.totalMinutes += log.total_screen_time_minutes;
+                existing.unlockCount += log.unlock_count;
+            }
+        }
+
+        // Convert to array and sort by date ascending
+        return Array.from(dateMap.entries())
+            .map(([date, data]) => ({
+                date,
+                totalMinutes: data.totalMinutes,
+                unlockCount: data.unlockCount
+            }))
+            .sort((a, b) => a.date.localeCompare(b.date));
+
+    } catch (error) {
+        console.error('Error fetching screen time history:', error);
+        return [];
+    }
+}
+
 /**
  * Send a notification to a device
  */
@@ -564,37 +615,95 @@ export function getCategoryColor(category: string): string {
 /**
  * Subscribe to real-time updates for all monitoring tables
  */
-export function subscribeToMonitoringUpdates(callback: (payload: any) => void) {
-    const channel = supabase
-        .channel('device_monitoring_realtime')
-        .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'screen_time_logs' },
-            callback
-        )
-        .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'app_usage_logs' },
-            callback
-        )
-        .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'network_logs' },
-            callback
-        )
-        .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'bluetooth_logs' },
-            callback
-        )
-        .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'device_events' },
-            callback
-        )
-        .subscribe();
+/**
+ * Subscribe to real-time updates with robust error handling and auto-reconnection
+ */
+export function subscribeToMonitoringUpdates(
+    callback: (payload: any) => void,
+    statusCallback?: (status: 'SUBSCRIBED' | 'TIMED_OUT' | 'CLOSED' | 'CHANNEL_ERROR' | 'CONNECTING') => void
+) {
+    let retryCount = 0;
+    const MAX_RETRIES = 5;
+    let retryTimeout: NodeJS.Timeout | null = null;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let isCleanedUp = false;
+    const shouldProcess = createEventDeduper();
 
+    function emit(payload: any): void {
+        const key = buildRealtimeEventKey(payload, true);
+        if (!shouldProcess(key)) return;
+        callback(payload);
+    }
+
+    const setupSubscription = () => {
+        if (isCleanedUp) return;
+
+        if (statusCallback) statusCallback('CONNECTING');
+
+        // Clean up previous channel if exists
+        if (channel) {
+            supabase.removeChannel(channel);
+        }
+
+        channel = supabase
+            .channel('device_monitoring_realtime')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'screen_time_logs' },
+                emit
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'app_usage_logs' },
+                emit
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'network_logs' },
+                emit
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'bluetooth_logs' },
+                emit
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'storage_logs' },
+                emit
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'device_events' },
+                emit
+            )
+            .subscribe((status) => {
+                console.log('Realtime Subscription Status:', status);
+                if (statusCallback) statusCallback(status as any);
+
+                if (status === 'SUBSCRIBED') {
+                    retryCount = 0; // Reset retries on success
+                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                    if (retryCount < MAX_RETRIES) {
+                        const delay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff
+                        console.log(`Subscription error (${status}). Retrying in ${delay}ms... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
+                        retryCount++;
+                        retryTimeout = setTimeout(setupSubscription, delay);
+                    } else {
+                        console.error('Max retries reached for realtime subscription.');
+                    }
+                }
+            });
+    };
+
+    // Initial connection
+    setupSubscription();
+
+    // Cleanup function
     return () => {
-        supabase.removeChannel(channel);
+        isCleanedUp = true;
+        if (retryTimeout) clearTimeout(retryTimeout);
+        if (channel) supabase.removeChannel(channel);
+        console.log('Realtime subscription cleaned up');
     };
 }

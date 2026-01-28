@@ -39,6 +39,7 @@ export function useAttendanceData({
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const previousDataCount = useRef<number>(0);
+  const realtimeRefreshRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fallback function for direct Supabase queries
   const fetchAttendanceDataFallback = useCallback(async () => {
@@ -242,7 +243,12 @@ export function useAttendanceData({
             async (payload) => {
               // Refresh data when changes occur (background update)
               logger.realTimeUpdate('Employee attendance data changed', { employeeCode, payload });
-              await fetchAttendanceData(true);
+              if (realtimeRefreshRef.current) {
+                clearTimeout(realtimeRefreshRef.current);
+              }
+              realtimeRefreshRef.current = setTimeout(() => {
+                fetchAttendanceData(true);
+              }, 800);
             }
           )
           .subscribe();
@@ -266,6 +272,10 @@ export function useAttendanceData({
 
     // Cleanup function
     return () => {
+      if (realtimeRefreshRef.current) {
+        clearTimeout(realtimeRefreshRef.current);
+        realtimeRefreshRef.current = null;
+      }
       if (fallbackInterval) {
         clearInterval(fallbackInterval);
       }
@@ -382,4 +392,3 @@ function processRealPunchLogs(punchLogs: RawPunchLog[], employeeCode: string): R
 
   return data;
 }
-

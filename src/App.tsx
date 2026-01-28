@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,6 +9,7 @@ import { MainLayout } from "@/layouts/MainLayout";
 import { OperationsLayout } from "@/layouts/OperationsLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageErrorBoundary } from "@/components/ErrorBoundaryUtils";
+import { USER_ROLES } from "@/config/roles";
 import { lazy, Suspense } from "react";
 
 // Loading fallback component
@@ -24,6 +24,7 @@ const PageLoader = () => (
 
 // Lazy-loaded page components
 const AttendancePage = lazy(() => import("./pages/Attendance/AttendancePage"));
+const NotificationsPage = lazy(() => import("@/pages/Notifications/NotificationsPage"));
 const ComingSoonPage = lazy(() => import("./pages/ComingSoonPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
@@ -36,6 +37,7 @@ const HistoryPage = lazy(() => import("./pages/History/HistoryPage"));
 const CategoriesPage = lazy(() => import("./pages/Categories/CategoriesPage"));
 const CallRecordingsPage = lazy(() => import("./pages/CallRecordings/CallRecordingsPage"));
 const DeviceMonitoringPage = lazy(() => import("./pages/DeviceMonitoring/DeviceMonitoringPage"));
+const TasksPage = lazy(() => import("./pages/Tasks/TasksPage"));
 
 const queryClient = new QueryClient();
 
@@ -45,15 +47,14 @@ const App = () => (
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
+            <Sonner position="top-right" expand={false} richColors />
             <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   {/* Public routes */}
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/admin" element={
-                    <ProtectedRoute requiredRole="Super Admin">
+                    <ProtectedRoute requiredRole={[USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN]}>
                       <AdminPage />
                     </ProtectedRoute>
                   } />
@@ -73,6 +74,15 @@ const App = () => (
                       <MainLayout>
                         <PageErrorBoundary>
                           <AttendancePage />
+                        </PageErrorBoundary>
+                      </MainLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/notifications" element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <PageErrorBoundary>
+                          <NotificationsPage />
                         </PageErrorBoundary>
                       </MainLayout>
                     </ProtectedRoute>
@@ -105,6 +115,11 @@ const App = () => (
                     <Route path="categories" element={
                       <PageErrorBoundary>
                         <CategoriesPage />
+                      </PageErrorBoundary>
+                    } />
+                    <Route path="tasks" element={
+                      <PageErrorBoundary>
+                        <TasksPage />
                       </PageErrorBoundary>
                     } />
                   </Route>

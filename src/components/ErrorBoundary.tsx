@@ -82,35 +82,35 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+        <div className="min-h-screen flex items-center justify-center bg-muted/40 px-4">
+          <div className="max-w-md w-full bg-card rounded-lg shadow-lg p-6 text-center border border-border">
             <div className="flex justify-center mb-4">
-              <div className="rounded-full bg-red-100 p-3">
-                <AlertTriangle className="h-8 w-8 text-red-600" />
+              <div className="rounded-full bg-destructive/10 p-3">
+                <AlertTriangle className="h-8 w-8 text-destructive" />
               </div>
             </div>
             
-            <h1 className="text-xl font-semibold text-gray-900 mb-2">
+            <h1 className="text-xl font-semibold text-foreground mb-2">
               Something went wrong
             </h1>
             
-            <p className="text-gray-600 mb-6">
+            <p className="text-muted-foreground mb-6">
               We're sorry, but something unexpected happened. The error has been logged and we'll look into it.
             </p>
 
             {/* Error details in development */}
             {import.meta.env.DEV && this.state.error && (
-              <div className="mb-6 p-4 bg-gray-100 rounded-lg text-left">
-                <h3 className="font-medium text-gray-900 mb-2">Error Details:</h3>
-                <p className="text-sm text-red-600 font-mono break-all">
+              <div className="mb-6 p-4 bg-muted rounded-lg text-left">
+                <h3 className="font-medium text-foreground mb-2">Error Details:</h3>
+                <p className="text-sm text-destructive font-mono break-all">
                   {this.state.error.message}
                 </p>
                 {this.state.error.stack && (
                   <details className="mt-2">
-                    <summary className="text-sm text-gray-600 cursor-pointer">
+                    <summary className="text-sm text-muted-foreground cursor-pointer">
                       Stack Trace
                     </summary>
-                    <pre className="text-xs text-gray-500 mt-2 overflow-auto max-h-32">
+                    <pre className="text-xs text-muted-foreground/80 mt-2 overflow-auto max-h-32">
                       {this.state.error.stack}
                     </pre>
                   </details>
@@ -121,7 +121,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={this.handleRetry}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
                 <RefreshCw className="h-4 w-4" />
                 Try Again
@@ -129,14 +129,14 @@ export class ErrorBoundary extends Component<Props, State> {
               
               <button
                 onClick={this.handleGoHome}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors"
               >
                 <Home className="h-4 w-4" />
                 Go Home
               </button>
             </div>
 
-            <p className="text-xs text-gray-500 mt-4">
+            <p className="text-xs text-muted-foreground/60 mt-4">
               Error ID: {Date.now().toString(36)}
             </p>
           </div>

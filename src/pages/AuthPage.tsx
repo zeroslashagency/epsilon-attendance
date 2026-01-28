@@ -366,33 +366,33 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4" style={{
+    <div className="min-h-screen bg-muted/40 flex items-center justify-center p-4" style={{
       backgroundImage: `
-        radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0)
+        radial-gradient(circle at 1px 1px, hsl(var(--foreground)/.1) 1px, transparent 0)
       `,
       backgroundSize: '20px 20px'
     }}>
       {/* Main Login Card */}
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex min-h-[600px]" style={{
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+      <div className="w-full max-w-4xl bg-card rounded-2xl shadow-2xl overflow-hidden flex min-h-[600px] border border-border" style={{
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
       }}>
         {/* Left Panel - Interactive Logo Particles */}
-        <div className="w-2/5 bg-black relative">
+        <div className="w-2/5 bg-black relative hidden md:block">
           <EpsilonLogoParticles />
         </div>
 
         {/* Right Panel - Login Form */}
-        <div className="w-3/5 bg-gray-800 p-12 flex flex-col justify-center relative">
+        <div className="w-full md:w-3/5 bg-slate-950 p-8 md:p-12 flex flex-col justify-center relative">
           {/* Sign In Button (Top Right) */}
           <Button
             variant="outline"
-            className="absolute top-6 right-6 bg-green-400 hover:bg-green-500 text-gray-800 border-green-400 rounded-full px-6 py-2 text-sm font-medium"
+            className="absolute top-6 right-6 bg-primary hover:bg-primary/90 text-primary-foreground border-primary rounded-full px-6 py-2 text-sm font-medium"
           >
             Sign In
           </Button>
 
           {/* Main Content */}
-          <div className="max-w-md relative z-10">
+          <div className="max-w-md w-full mx-auto relative z-10">
             {/* Title */}
             <h1 className="text-4xl font-bold text-white mb-8">
               {currentView === 'login' && 'Sign In'}
@@ -402,18 +402,14 @@ export default function AuthPage() {
 
             {/* Messages */}
             {error && (
-              <Alert className="border-red-400 bg-red-900/20 rounded-lg mb-6 shadow-lg" style={{
-                boxShadow: '0 10px 25px -5px rgba(239, 68, 68, 0.1), 0 0 0 1px rgba(239, 68, 68, 0.05)'
-              }}>
-                <AlertDescription className="text-red-300 text-sm">{error}</AlertDescription>
+              <Alert className="border-destructive/50 bg-destructive/10 rounded-lg mb-6 shadow-lg">
+                <AlertDescription className="text-destructive text-sm">{error}</AlertDescription>
               </Alert>
             )}
             
             {success && (
-              <Alert className="border-green-400 bg-green-900/20 rounded-lg mb-6 shadow-lg" style={{
-                boxShadow: '0 10px 25px -5px rgba(34, 197, 94, 0.1), 0 0 0 1px rgba(34, 197, 94, 0.05)'
-              }}>
-                <AlertDescription className="text-green-300 text-sm">{success}</AlertDescription>
+              <Alert className="border-green-500/50 bg-green-500/10 rounded-lg mb-6 shadow-lg">
+                <AlertDescription className="text-green-400 text-sm">{success}</AlertDescription>
               </Alert>
             )}
 
@@ -422,7 +418,7 @@ export default function AuthPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Email Field */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300 uppercase tracking-wider">
+                  <label className="block text-sm font-medium text-slate-400 uppercase tracking-wider">
                     Email
                   </label>
                   <Input
@@ -431,14 +427,14 @@ export default function AuthPage() {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                     placeholder="Enter your email address"
                     required
-                    className="h-12 bg-transparent border-0 border-b border-gray-600 rounded-none px-0 text-gray-200 placeholder:text-gray-500 focus:border-green-400 focus:ring-0 focus:outline-none"
+                    className="h-12 bg-transparent border-0 border-b border-slate-700 rounded-none px-0 text-white placeholder:text-slate-600 focus:border-primary focus:ring-0 focus:outline-none"
                     disabled={loading}
                   />
                 </div>
 
                 {/* Password Field */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300 uppercase tracking-wider">
+                  <label className="block text-sm font-medium text-slate-400 uppercase tracking-wider">
                     Password
                   </label>
                   <div className="relative">
@@ -448,16 +444,16 @@ export default function AuthPage() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                       placeholder="Enter your password"
                       required
-                      className="h-12 bg-transparent border-0 border-b border-gray-600 rounded-none px-0 pr-12 text-gray-200 placeholder:text-gray-500 focus:border-green-400 focus:ring-0 focus:outline-none"
+                      className="h-12 bg-transparent border-0 border-b border-slate-700 rounded-none px-0 pr-12 text-white placeholder:text-slate-600 focus:border-primary focus:ring-0 focus:outline-none"
                       disabled={loading}
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-gray-200"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-slate-500 hover:text-white"
                       onClick={() => setShowPassword(!showPassword)}
-                      disabled={loading}
+                      isDisabled={loading}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -472,7 +468,7 @@ export default function AuthPage() {
                 <div className="text-right">
                   <button
                     type="button"
-                    className="text-sm text-gray-400 hover:text-green-400 transition-colors"
+                    className="text-sm text-slate-500 hover:text-primary transition-colors"
                     disabled={loading}
                     onClick={() => setCurrentView('forgot')}
                   >
@@ -483,8 +479,8 @@ export default function AuthPage() {
                 {/* Sign In Button */}
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-green-400 hover:bg-green-500 text-gray-800 font-bold rounded-full transition-all duration-200 hover:shadow-lg mt-8"
-                  disabled={loading}
+                  className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full transition-all duration-200 hover:shadow-lg mt-8"
+                  isDisabled={loading}
                 >
                   {loading ? (
                     <>
@@ -503,7 +499,7 @@ export default function AuthPage() {
               <form onSubmit={handleForgotPassword} className="space-y-6">
                 {/* Email Field */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300 uppercase tracking-wider">
+                  <label className="block text-sm font-medium text-slate-400 uppercase tracking-wider">
                     Email Address
                   </label>
                   <Input
@@ -512,7 +508,7 @@ export default function AuthPage() {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                     placeholder="Enter your email address"
                     required
-                    className="h-12 bg-transparent border-0 border-b border-gray-600 rounded-none px-0 text-gray-200 placeholder:text-gray-500 focus:border-green-400 focus:ring-0 focus:outline-none"
+                    className="h-12 bg-transparent border-0 border-b border-slate-700 rounded-none px-0 text-white placeholder:text-slate-600 focus:border-primary focus:ring-0 focus:outline-none"
                     disabled={resetLoading}
                   />
                 </div>
@@ -520,8 +516,8 @@ export default function AuthPage() {
                 {/* Send Reset Email Button */}
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-green-400 hover:bg-green-500 text-gray-800 font-bold rounded-full transition-all duration-200 hover:shadow-lg mt-8"
-                  disabled={resetLoading}
+                  className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full transition-all duration-200 hover:shadow-lg mt-8"
+                  isDisabled={resetLoading}
                 >
                   {resetLoading ? (
                     <>
@@ -537,7 +533,7 @@ export default function AuthPage() {
                 <div className="text-center">
                   <button
                     type="button"
-                    className="text-sm text-gray-400 hover:text-green-400 transition-colors"
+                    className="text-sm text-slate-500 hover:text-primary transition-colors"
                     onClick={() => setCurrentView('login')}
                   >
                     Back to Sign In
@@ -551,7 +547,7 @@ export default function AuthPage() {
               <form onSubmit={handlePasswordReset} className="space-y-6">
                 {/* New Password Field */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300 uppercase tracking-wider">
+                  <label className="block text-sm font-medium text-slate-400 uppercase tracking-wider">
                     New Password
                   </label>
                   <div className="relative">
@@ -561,16 +557,16 @@ export default function AuthPage() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
                       placeholder="Enter your new password"
                       required
-                      className="h-12 bg-transparent border-0 border-b border-gray-600 rounded-none px-0 pr-12 text-gray-200 placeholder:text-gray-500 focus:border-green-400 focus:ring-0 focus:outline-none"
+                      className="h-12 bg-transparent border-0 border-b border-slate-700 rounded-none px-0 pr-12 text-white placeholder:text-slate-600 focus:border-primary focus:ring-0 focus:outline-none"
                       disabled={resetLoading}
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-gray-200"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-slate-500 hover:text-white"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      disabled={resetLoading}
+                      isDisabled={resetLoading}
                     >
                       {showNewPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -583,7 +579,7 @@ export default function AuthPage() {
 
                 {/* Confirm Password Field */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300 uppercase tracking-wider">
+                  <label className="block text-sm font-medium text-slate-400 uppercase tracking-wider">
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -593,16 +589,16 @@ export default function AuthPage() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
                       placeholder="Confirm your new password"
                       required
-                      className="h-12 bg-transparent border-0 border-b border-gray-600 rounded-none px-0 pr-12 text-gray-200 placeholder:text-gray-500 focus:border-green-400 focus:ring-0 focus:outline-none"
+                      className="h-12 bg-transparent border-0 border-b border-slate-700 rounded-none px-0 pr-12 text-white placeholder:text-slate-600 focus:border-primary focus:ring-0 focus:outline-none"
                       disabled={resetLoading}
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-gray-200"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-slate-500 hover:text-white"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      disabled={resetLoading}
+                      isDisabled={resetLoading}
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -616,8 +612,8 @@ export default function AuthPage() {
                 {/* Set Password Button */}
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-green-400 hover:bg-green-500 text-gray-800 font-bold rounded-full transition-all duration-200 hover:shadow-lg mt-8"
-                  disabled={resetLoading}
+                  className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full transition-all duration-200 hover:shadow-lg mt-8"
+                  isDisabled={resetLoading}
                 >
                   {resetLoading ? (
                     <>
@@ -633,7 +629,7 @@ export default function AuthPage() {
                 <div className="text-center">
                   <button
                     type="button"
-                    className="text-sm text-gray-400 hover:text-green-400 transition-colors"
+                    className="text-sm text-slate-500 hover:text-primary transition-colors"
                     onClick={() => setCurrentView('login')}
                   >
                     Back to Sign In
@@ -644,10 +640,10 @@ export default function AuthPage() {
 
             {/* Footer */}
             <div className="mt-8 flex justify-between items-center">
-              <span className="text-sm text-gray-400">I'm already a member</span>
+              <span className="text-sm text-slate-500">I'm already a member</span>
               <Button
                 variant="outline"
-                className="bg-green-400 hover:bg-green-500 text-gray-800 border-green-400 rounded-full px-6 py-2 text-sm font-bold"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground border-primary rounded-full px-6 py-2 text-sm font-bold"
               >
                 SIGN IN
               </Button>

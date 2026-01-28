@@ -132,7 +132,7 @@ export function ReportsFilters({ filters, onFiltersChange }: ReportsFiltersProps
                 id="includeWeekends"
                 checked={filters.includeWeekends}
                 onChange={(e) => handleIncludeWeekendsChange(e.target.checked)}
-                className="rounded border-gray-300"
+                className="rounded border-border"
               />
               <label htmlFor="includeWeekends" className="text-sm">
                 Include Weekends
@@ -144,5 +144,4 @@ export function ReportsFilters({ filters, onFiltersChange }: ReportsFiltersProps
     </Card>
   );
 }
-
 

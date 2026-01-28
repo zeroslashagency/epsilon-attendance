@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { CallRecording } from '@/types/call-recordings';
+import { buildRealtimeEventKey, createEventDeduper } from '@/utils/realtime';
 
 export function useCallRecordings() {
     const [recordings, setRecordings] = useState<CallRecording[]>([]);
@@ -32,6 +33,12 @@ export function useCallRecordings() {
         // Initial fetch
         fetchRecordings();
 
+        const shouldProcess = createEventDeduper();
+        function shouldProcessPayload(payload: unknown): boolean {
+            const key = buildRealtimeEventKey(payload as any, false);
+            return shouldProcess(key);
+        }
+
         // Setup realtime subscription - simple approach without filter
         const channel = supabase
             .channel('call_recordings_live')
@@ -43,6 +50,7 @@ export function useCallRecordings() {
                     table: 'call_recordings',
                 },
                 (payload) => {
+                    if (!shouldProcessPayload(payload)) return;
                     const newRecord = payload.new as CallRecording;
                     setRecordings((prev) => {
                         // Strict deduplication: Check if ID already exists
@@ -61,6 +69,7 @@ export function useCallRecordings() {
                     table: 'call_recordings',
                 },
                 (payload) => {
+                    if (!shouldProcessPayload(payload)) return;
                     setRecordings((prev) =>
                         prev.map((rec) =>
                             rec.id === (payload.new as CallRecording).id
@@ -78,6 +87,7 @@ export function useCallRecordings() {
                     table: 'call_recordings',
                 },
                 (payload) => {
+                    if (!shouldProcessPayload(payload)) return;
                     setRecordings((prev) =>
                         prev.filter((rec) => rec.id !== (payload.old as CallRecording).id)
                     );

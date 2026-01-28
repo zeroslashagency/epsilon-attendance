@@ -1,14 +1,8 @@
-// Role-based access control utilities
-export type UserRole = 'admin' | 'employee' | 'manager' | 'operator';
-
-export interface Permission {
-  module: string;
-  action: string;
-}
+import { USER_ROLES, UserRole as AppUserRole } from '@/config/roles';
 
 // Define permissions for each role
-export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  admin: [
+export const ROLE_PERMISSIONS: Record<string, { module: string; action: string }[]> = {
+  [USER_ROLES.SUPER_ADMIN]: [
     { module: 'dashboard', action: 'view' },
     { module: 'schedule', action: 'view' },
     { module: 'schedule', action: 'create' },
@@ -21,22 +15,26 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     { module: 'production', action: 'view' },
     { module: 'monitoring', action: 'view' },
   ],
-  manager: [
+  [USER_ROLES.ADMIN]: [
     { module: 'dashboard', action: 'view' },
     { module: 'schedule', action: 'view' },
     { module: 'schedule', action: 'create' },
+    { module: 'schedule', action: 'edit' },
     { module: 'attendance', action: 'view_all' },
+    { module: 'attendance', action: 'view_own' },
     { module: 'attendance', action: 'export' },
     { module: 'analytics', action: 'view' },
+    { module: 'users', action: 'manage' },
     { module: 'production', action: 'view' },
+    { module: 'monitoring', action: 'view' },
   ],
-  operator: [
+  [USER_ROLES.OPERATOR]: [
     { module: 'dashboard', action: 'view' },
     { module: 'schedule', action: 'view' },
     { module: 'attendance', action: 'view_own' },
     { module: 'production', action: 'view' },
   ],
-  employee: [
+  [USER_ROLES.EMPLOYEE]: [
     { module: 'attendance', action: 'view_own' },
   ]
 };
@@ -49,8 +47,7 @@ export function hasPermission(
 ): boolean {
   if (!userRole) return false;
   
-  const role = userRole.toLowerCase() as UserRole;
-  const permissions = ROLE_PERMISSIONS[role] || [];
+  const permissions = ROLE_PERMISSIONS[userRole] || [];
   
   return permissions.some(
     permission => permission.module === module && permission.action === action
@@ -64,6 +61,7 @@ export function canAccessStandaloneAttendance(userRole: string | null): boolean 
 
 // Check if user can view all attendance data
 export function canViewAllAttendance(userRole: string | null): boolean {
+  if (userRole === USER_ROLES.ADMIN || userRole === USER_ROLES.SUPER_ADMIN) return true;
   return hasPermission(userRole, 'attendance', 'view_all');
 }
 
@@ -71,8 +69,7 @@ export function canViewAllAttendance(userRole: string | null): boolean {
 export function getAvailableModules(userRole: string | null): string[] {
   if (!userRole) return [];
   
-  const role = userRole.toLowerCase() as UserRole;
-  const permissions = ROLE_PERMISSIONS[role] || [];
+  const permissions = ROLE_PERMISSIONS[userRole] || [];
   
   return [...new Set(permissions.map(p => p.module))];
 }
@@ -81,8 +78,6 @@ export function getAvailableModules(userRole: string | null): string[] {
 export function shouldRestrictToOwnData(userRole: string | null): boolean {
   if (!userRole) return true;
   
-  const role = userRole.toLowerCase() as UserRole;
-  
-  // Employees and operators can only see their own data
-  return role === 'employee' || role === 'operator';
+  // Only Admin and Super Admin can see everyone's data
+  return userRole !== USER_ROLES.ADMIN && userRole !== USER_ROLES.SUPER_ADMIN;
 }

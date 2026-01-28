@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { LayoutDashboard, FileText, Activity, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { USER_ROLES } from '@/config/roles';
 
 /**
  * OperationsLayout - Sidebar navigation for FIR, Reports, History, Categories
@@ -34,7 +35,7 @@ export function OperationsLayout() {
             label: 'Categories',
             path: '/operations/categories',
             icon: List,
-            role: 'Super Admin'
+            role: USER_ROLES.SUPER_ADMIN
         }
     ];
 

@@ -129,7 +129,7 @@ export const DeviceStatus: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+      <div className="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-muted text-muted-foreground">
         <Clock className="h-4 w-4 animate-spin" />
         <span>Checking...</span>
       </div>
@@ -138,7 +138,7 @@ export const DeviceStatus: React.FC = () => {
 
   if (!deviceStatus) {
     return (
-      <div className="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700 border border-red-200">
+      <div className="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-destructive/10 text-destructive border border-destructive/20">
         <WifiOff className="h-4 w-4" />
         <span>No Device</span>
       </div>
@@ -152,7 +152,7 @@ export const DeviceStatus: React.FC = () => {
     switch (deviceStatus.calculated_status) {
       case 'online':
         return {
-          className: 'bg-green-100 text-green-700 border border-green-200',
+          className: 'bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400',
           icon: <Wifi className="h-4 w-4" />,
           text: 'Device Online',
           dot: <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>,
@@ -160,7 +160,7 @@ export const DeviceStatus: React.FC = () => {
         };
       case 'warning':
         return {
-          className: 'bg-yellow-100 text-yellow-700 border border-yellow-200',
+          className: 'bg-yellow-100 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400',
           icon: <AlertTriangle className="h-4 w-4" />,
           text: 'Device Warning',
           dot: <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>,
@@ -168,18 +168,18 @@ export const DeviceStatus: React.FC = () => {
         };
       case 'offline':
         return {
-          className: 'bg-red-100 text-red-700 border border-red-200',
+          className: 'bg-destructive/10 text-destructive border border-destructive/20',
           icon: <WifiOff className="h-4 w-4" />,
           text: 'Device Offline',
-          dot: <div className="w-2 h-2 bg-red-500 rounded-full"></div>,
+          dot: <div className="w-2 h-2 bg-destructive rounded-full"></div>,
           subtitle: `Last sync ${timeAgo}`
         };
       default:
         return {
-          className: 'bg-gray-100 text-gray-700 border border-gray-200',
+          className: 'bg-muted text-muted-foreground border border-border',
           icon: <AlertTriangle className="h-4 w-4" />,
           text: 'Device Unknown',
-          dot: <div className="w-2 h-2 bg-gray-500 rounded-full"></div>,
+          dot: <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>,
           subtitle: `Last sync ${timeAgo}`
         };
     }

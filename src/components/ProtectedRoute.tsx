@@ -2,6 +2,7 @@ import React from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { Loader2 } from 'lucide-react'
+import { USER_ROLES } from '@/config/roles'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -63,13 +64,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
 // Convenience components for common role checks
 export const EmployeeRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute requiredRole={['employee', 'admin']}>
+  <ProtectedRoute requiredRole={[USER_ROLES.EMPLOYEE, USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN]}>
     {children}
   </ProtectedRoute>
 )
 
 export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute requiredRole="admin">
+  <ProtectedRoute requiredRole={[USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN]}>
     {children}
   </ProtectedRoute>
 )
