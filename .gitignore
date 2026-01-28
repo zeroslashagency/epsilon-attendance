@@ -36,3 +36,7 @@ mobile/
 
 # Agent configuration
 .agent/
+
+# Ignore all Markdown files
+*.md
+**/*.md
