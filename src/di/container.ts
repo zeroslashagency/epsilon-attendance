@@ -11,11 +11,11 @@ import type { IAttendanceRepository } from '@/core/domain/repositories/IAttendan
 import type { IEmployeeRepository } from '@/core/domain/repositories/IEmployeeRepository';
 
 // Singleton storage
-const singletons = new Map<symbol, any>();
+const singletons = new Map<symbol, unknown>();
 let isInitialized = false;
 
 // Factory functions (lazy loaded)
-const factories: Record<symbol, () => Promise<any>> = {};
+const factories: Record<symbol, () => Promise<unknown>> = {};
 
 /**
  * Register factory functions for all dependencies

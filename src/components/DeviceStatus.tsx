@@ -83,6 +83,17 @@ export const DeviceStatus: React.FC = () => {
         });
       }
     } catch (err) {
+      console.error('Failed to fetch device status:', err);
+      setDeviceStatus({
+        device_id: 'device-1',
+        device_name: 'Attendance Device',
+        status: 'error',
+        last_sync: new Date().toISOString(),
+        last_log_received: null,
+        total_logs_today: 0,
+        error_message: 'Failed to fetch device status',
+        calculated_status: 'offline'
+      });
     } finally {
       setLoading(false);
     }

@@ -5,7 +5,7 @@ import { LocationMap } from '@/components/CallRecordings/LocationMap';
 import { Loader2 } from 'lucide-react';
 
 export default function CallRecordingsPage() {
-    const { recordings, loading, error, realtimeStatus } = useCallRecordings();
+    const { recordings, loading, error, realtimeStatus, stats } = useCallRecordings();
 
     const isConnected = realtimeStatus === 'SUBSCRIBED';
 
@@ -64,7 +64,7 @@ export default function CallRecordingsPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="space-y-6">
                     {/* Stats Cards */}
-                    <StatsCards recordings={recordings} />
+                    <StatsCards recordings={recordings} stats={stats} />
 
                     {/* Location Map */}
                     <LocationMap recordings={recordings} />

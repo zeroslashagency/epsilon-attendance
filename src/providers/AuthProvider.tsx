@@ -20,6 +20,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [standaloneEmployeeName, setStandaloneEmployeeName] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    const initTimeout = setTimeout(() => {
+      if (isMounted) {
+        console.warn('Auth initialization timeout. Falling back to unauthenticated state.');
+        setLoading(false);
+      }
+    }, 1000);
+
     async function fetchEmployeeData(userId: string): Promise<void> {
       try {
         const { data: profile, error: profileError } = await supabase
@@ -49,39 +57,58 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const { data: { session } } = await supabase.auth.getSession();
 
+        if (!isMounted) return;
         setSession(session);
         setUser(session?.user ?? null);
+        setLoading(false);
 
         // If we have a session, fetch real data
         if (session?.user) {
-          await fetchEmployeeData(session.user.id);
+          fetchEmployeeData(session.user.id);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
     initAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return;
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (event === 'SIGNED_IN' && session?.user) {
-        setLoading(true);
-        await fetchEmployeeData(session.user.id);
+      if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
         setLoading(false);
+        if (session?.user) {
+          void fetchEmployeeData(session.user.id);
+        }
+        return;
+      }
+
+      if (event === 'SIGNED_IN') {
+        setLoading(false);
+        if (session?.user) {
+          void fetchEmployeeData(session.user.id);
+        }
       }
 
       if (event === 'SIGNED_OUT') {
         clearState();
+        setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      clearTimeout(initTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   function clearState(): void {

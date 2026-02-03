@@ -60,7 +60,7 @@ export interface DeviceEvent {
     device_id: string;
     event_type: string;
     event_time: string;
-    metadata: any;
+    metadata: Record<string, unknown> | null;
     created_at: string;
 }
 
@@ -619,9 +619,18 @@ export function getCategoryColor(category: string): string {
  * Subscribe to real-time updates with robust error handling and auto-reconnection
  */
 export function subscribeToMonitoringUpdates(
-    callback: (payload: any) => void,
+    callback: (payload: unknown) => void,
     statusCallback?: (status: 'SUBSCRIBED' | 'TIMED_OUT' | 'CLOSED' | 'CHANNEL_ERROR' | 'CONNECTING') => void
 ) {
+    type RealtimePayload = Parameters<typeof buildRealtimeEventKey>[0];
+    type RealtimeStatus = 'SUBSCRIBED' | 'TIMED_OUT' | 'CLOSED' | 'CHANNEL_ERROR' | 'CONNECTING';
+    const isRealtimeStatus = (value: string): value is RealtimeStatus => {
+        return value === 'SUBSCRIBED'
+            || value === 'TIMED_OUT'
+            || value === 'CLOSED'
+            || value === 'CHANNEL_ERROR'
+            || value === 'CONNECTING';
+    };
     let retryCount = 0;
     const MAX_RETRIES = 5;
     let retryTimeout: NodeJS.Timeout | null = null;
@@ -629,8 +638,8 @@ export function subscribeToMonitoringUpdates(
     let isCleanedUp = false;
     const shouldProcess = createEventDeduper();
 
-    function emit(payload: any): void {
-        const key = buildRealtimeEventKey(payload, true);
+    function emit(payload: unknown): void {
+        const key = buildRealtimeEventKey(payload as RealtimePayload, true);
         if (!shouldProcess(key)) return;
         callback(payload);
     }
@@ -679,7 +688,9 @@ export function subscribeToMonitoringUpdates(
             )
             .subscribe((status) => {
                 console.log('Realtime Subscription Status:', status);
-                if (statusCallback) statusCallback(status as any);
+                if (statusCallback && isRealtimeStatus(status)) {
+                    statusCallback(status);
+                }
 
                 if (status === 'SUBSCRIBED') {
                     retryCount = 0; // Reset retries on success

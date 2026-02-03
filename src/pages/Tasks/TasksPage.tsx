@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ export default function TasksPage() {
     // Filters
     const [statusFilter, setStatusFilter] = useState("all");
 
-    const fetchTasks = async () => {
+    const fetchTasks = useCallback(async () => {
         setIsLoading(true);
         try {
             const data = await getTasks({
@@ -37,11 +37,11 @@ export default function TasksPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [statusFilter]);
 
     useEffect(() => {
         fetchTasks();
-    }, [statusFilter]);
+    }, [fetchTasks]);
 
     const handleCreate = () => {
         setEditingTask(null);

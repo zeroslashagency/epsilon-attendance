@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Message, User, Attachment } from '@/types/fir';
 import { reportService } from '@/services/fir/fir.service';
 import { supabase } from '@/lib/supabase';
@@ -33,6 +33,13 @@ export function MessageTimeline({ reportId, currentUser }: MessageTimelineProps)
     const scrollRef = useRef<HTMLDivElement>(null);
     const pendingMessagesRef = useRef<Message[]>([]);
     const flushTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const loadMessages = useCallback(async (): Promise<void> => {
+        setLoading(true);
+        const data = await reportService.getMessages(reportId);
+        setMessages(data);
+        setLoading(false);
+    }, [reportId]);
 
     // Load messages on mount
     useEffect(() => {
@@ -79,7 +86,7 @@ export function MessageTimeline({ reportId, currentUser }: MessageTimelineProps)
             pendingMessagesRef.current = [];
             supabase.removeChannel(channel);
         };
-    }, [reportId]);
+    }, [reportId, loadMessages]);
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
@@ -87,13 +94,6 @@ export function MessageTimeline({ reportId, currentUser }: MessageTimelineProps)
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messages]);
-
-    async function loadMessages(): Promise<void> {
-        setLoading(true);
-        const data = await reportService.getMessages(reportId);
-        setMessages(data);
-        setLoading(false);
-    }
 
     async function handleSend(): Promise<void> {
         if (!newMessage.trim() && attachments.length === 0) return;

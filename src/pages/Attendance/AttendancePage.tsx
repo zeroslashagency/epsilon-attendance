@@ -29,8 +29,8 @@ import { cn } from "@/lib/utils";
 
 const AttendancePage = () => {
   const [firPoints, setFirPoints] = useState(0);
-  const [shiftData, setShiftData] = useState<any>(null);
-  const [leaveBalance, setLeaveBalance] = useState<any[]>([]);
+  const [shiftData, setShiftData] = useState<{ name?: string | null; start_time?: string | null; end_time?: string | null } | null>(null);
+  const [leaveBalance, setLeaveBalance] = useState<Array<{ type: string; remaining: number }>>([]);
 
   const {
     user,

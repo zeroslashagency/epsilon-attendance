@@ -27,7 +27,7 @@ export default function FIRPage() {
             setCurrentUser({
                 id: user.id,
                 name: employeeName || 'User',
-                role: (role as any) || 'Reporter',
+                role: role || 'Reporter',
                 avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(employeeName || 'U')}&background=random`,
             });
         }
@@ -43,7 +43,7 @@ export default function FIRPage() {
         if (viewParam && ['dashboard', 'reports', 'categories', 'analytics'].includes(viewParam)) {
             store.setCurrentView(viewParam);
         }
-    }, []);
+    }, [store]);
 
     // Update URL when view changes
     const handleViewChange = (view: FIRView) => {

@@ -9,8 +9,31 @@ import {
 } from '@/core/domain/repositories/IAttendanceRepository';
 import { supabase } from '@/lib/supabase';
 
+type AttendanceRow = {
+    id: string;
+    employee_id: string;
+    date: string;
+    check_in: string | null;
+    check_out: string | null;
+    status: string;
+    created_at: string;
+    updated_at: string;
+};
+
 export class SupabaseAttendanceRepository implements IAttendanceRepository {
     private tableName = 'attendance_logs';
+    private static mapToRecord(data: AttendanceRow): AttendanceRecord {
+        return {
+            id: data.id,
+            employeeId: data.employee_id,
+            date: data.date,
+            checkIn: data.check_in,
+            checkOut: data.check_out,
+            status: data.status,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+        };
+    }
 
     async getById(id: string): Promise<AttendanceRecord | null> {
         const { data, error } = await supabase
@@ -20,7 +43,7 @@ export class SupabaseAttendanceRepository implements IAttendanceRepository {
             .single();
 
         if (error || !data) return null;
-        return this.mapToRecord(data);
+        return SupabaseAttendanceRepository.mapToRecord(data as AttendanceRow);
     }
 
     async getAll(filter?: AttendanceFilter): Promise<AttendanceRecord[]> {
@@ -42,7 +65,7 @@ export class SupabaseAttendanceRepository implements IAttendanceRepository {
         const { data, error } = await query.order('date', { ascending: false });
 
         if (error || !data) return [];
-        return data.map(this.mapToRecord);
+        return (data as AttendanceRow[]).map(SupabaseAttendanceRepository.mapToRecord);
     }
 
     async getByEmployeeId(employeeId: string, filter?: AttendanceFilter): Promise<AttendanceRecord[]> {
@@ -63,7 +86,7 @@ export class SupabaseAttendanceRepository implements IAttendanceRepository {
             .single();
 
         if (error) throw new Error(`Failed to create attendance: ${error.message}`);
-        return this.mapToRecord(data);
+        return SupabaseAttendanceRepository.mapToRecord(data as AttendanceRow);
     }
 
     async update(id: string, record: Partial<AttendanceRecord>): Promise<AttendanceRecord> {
@@ -79,7 +102,7 @@ export class SupabaseAttendanceRepository implements IAttendanceRepository {
             .single();
 
         if (error) throw new Error(`Failed to update attendance: ${error.message}`);
-        return this.mapToRecord(data);
+        return SupabaseAttendanceRepository.mapToRecord(data as AttendanceRow);
     }
 
     async delete(id: string): Promise<void> {
@@ -91,16 +114,4 @@ export class SupabaseAttendanceRepository implements IAttendanceRepository {
         if (error) throw new Error(`Failed to delete attendance: ${error.message}`);
     }
 
-    private mapToRecord(data: any): AttendanceRecord {
-        return {
-            id: data.id,
-            employeeId: data.employee_id,
-            date: data.date,
-            checkIn: data.check_in,
-            checkOut: data.check_out,
-            status: data.status,
-            createdAt: data.created_at,
-            updatedAt: data.updated_at,
-        };
-    }
 }

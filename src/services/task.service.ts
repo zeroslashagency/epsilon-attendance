@@ -53,7 +53,7 @@ export async function getTasks(filters?: {
         if (error) throw error;
 
         // Transform to Task type (normalizing joined data if needed)
-        return (data || []) as any as Task[];
+        return (data || []) as Task[];
     } catch (error) {
         console.error('Error fetching tasks:', error);
         return [];
@@ -80,7 +80,7 @@ export async function getTask(id: string): Promise<Task | null> {
             .single();
 
         if (error) throw error;
-        return data as any as Task;
+        return data as Task;
     } catch (error) {
         console.error('Error fetching task:', error);
         return null;

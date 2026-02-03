@@ -2,7 +2,7 @@
  * View Model Hook: useEmployeeViewModel
  * Connects UI to GetEmployee use case
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { container } from '@/di/container';
 import { TYPES } from '@/di/types';
 import { GetEmployee } from '@/core/application/use-cases/employee/GetEmployee';
@@ -27,7 +27,10 @@ export function useEmployeeViewModel({
   const [error, setError] = useState<Error | null>(null);
 
   // Get use case from DI container
-  const getEmployee = container.get<GetEmployee>(TYPES.GetEmployee);
+  const getEmployee = useMemo(
+    () => container.get<GetEmployee>(TYPES.GetEmployee),
+    []
+  );
 
   const fetchData = useCallback(async () => {
     if (!employeeCode) return;
@@ -44,7 +47,7 @@ export function useEmployeeViewModel({
     } finally {
       setIsLoading(false);
     }
-  }, [employeeCode]);
+  }, [employeeCode, getEmployee]);
 
   const reload = useCallback(async () => {
     await fetchData();

@@ -7,16 +7,18 @@ import { CalendarIcon, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-interface ReportsFiltersProps {
-  filters: {
-    dateRange: {
-      start: Date;
-      end: Date;
-    };
-    reportType: 'daily' | 'monthly' | 'yearly';
-    includeWeekends: boolean;
+interface ReportsFiltersState {
+  dateRange: {
+    start: Date;
+    end: Date;
   };
-  onFiltersChange: (filters: any) => void;
+  reportType: 'daily' | 'monthly' | 'yearly';
+  includeWeekends: boolean;
+}
+
+interface ReportsFiltersProps {
+  filters: ReportsFiltersState;
+  onFiltersChange: (filters: ReportsFiltersState) => void;
 }
 
 export function ReportsFilters({ filters, onFiltersChange }: ReportsFiltersProps) {
@@ -144,4 +146,3 @@ export function ReportsFilters({ filters, onFiltersChange }: ReportsFiltersProps
     </Card>
   );
 }
-

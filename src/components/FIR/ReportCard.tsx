@@ -2,7 +2,7 @@ import React from 'react';
 import { Report, ReportStatus, Priority } from '@/types/fir';
 import { ShieldAlert, Calendar } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ interface ReportCardProps {
 export const ReportCard: React.FC<ReportCardProps> = ({ report, isSelected, onClick }) => {
 
     // Helper for Priority Badge Color
-    const getPriorityVariant = (priority: Priority) => {
+    const getPriorityVariant = (priority: Priority): BadgeProps["variant"] => {
         switch (priority) {
             case Priority.High: return "destructive";
             case Priority.Medium: return "default"; // Will map to primary (use custom class if needed)
@@ -38,7 +38,7 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, isSelected, onCl
             <CardHeader className="p-4 flex flex-row items-start justify-between space-y-0 pb-2">
                 <div className="space-y-1 pr-2">
                     <div className="flex items-center gap-2">
-                        <Badge variant={getPriorityVariant(report.priority) as any} className="text-[10px] px-1.5 h-5">
+                        <Badge variant={getPriorityVariant(report.priority)} className="text-[10px] px-1.5 h-5">
                             {report.priority}
                         </Badge>
                         {report.fir_type === 'GOOD' && (

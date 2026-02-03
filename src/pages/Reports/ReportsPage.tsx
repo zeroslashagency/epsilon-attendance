@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { reportService } from '@/services/fir/reportService';
@@ -30,10 +30,6 @@ const ReportsPage: React.FC = () => {
     avatar: ''
   } : null;
 
-  useEffect(() => {
-    loadReports();
-  }, [user]);
-
   // Handle URL query param for initial selection
   useEffect(() => {
     const idFromUrl = searchParams.get('id');
@@ -52,7 +48,7 @@ const ReportsPage: React.FC = () => {
     }
   };
 
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -72,7 +68,11 @@ const ReportsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, role]);
+
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
 
   const handleUpdateReport = (updated: Report) => {
     setReports(prev => prev.map(r => r.id === updated.id ? updated : r));

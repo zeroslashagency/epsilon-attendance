@@ -861,7 +861,11 @@ export default function DeviceMonitoringPage() {
                                     <JollySelect
                                         label="Type"
                                         selectedKey={notificationType}
-                                        onSelectionChange={(key) => setNotificationType(key as any)}
+                                        onSelectionChange={(key) => {
+                                            if (typeof key === 'string') {
+                                                setNotificationType(key as DeviceNotification['notification_type']);
+                                            }
+                                        }}
                                     >
                                         <SelectItem id="reminder">Reminder</SelectItem>
                                         <SelectItem id="alert">Alert</SelectItem>

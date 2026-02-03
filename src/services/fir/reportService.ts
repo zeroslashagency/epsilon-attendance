@@ -9,6 +9,39 @@ export const USERS: Record<string, User> = {
     admin1: { id: 'u4', name: 'System Admin', role: 'Super Admin', avatar: 'https://ui-avatars.com/api/?name=System+Admin' },
 };
 
+type FirRow = {
+    id: string;
+    title?: string | null;
+    description?: string | null;
+    fir_type?: 'GOOD' | 'BAD' | string | null;
+    status?: string | null;
+    priority?: Priority | string | null;
+    category?: string | null;
+    created_at: string;
+    attachments?: Attachment[] | null;
+    employee_id?: number | null;
+    submitted_person_id?: string | null;
+    user_id?: string | null;
+    created_by_id?: string | null;
+    created_by?: string | null;
+    response_comment?: string | null;
+    stage_2_attachments?: Attachment[] | null;
+    final_decision?: string | null;
+    closed_at?: string | null;
+    stage_3_by?: string | null;
+    employee_master?: {
+        employee_name?: string | null;
+        employee_code?: string | null;
+    } | null;
+};
+
+type ProfileRow = {
+    id: string;
+    employee_code?: string | null;
+    full_name?: string | null;
+    role?: string | null;
+};
+
 class ReportService {
 
     async getReports(): Promise<Report[]> {
@@ -37,10 +70,11 @@ class ReportService {
             }
 
             // Collect unique employee codes for batch profile lookup
+            const rows = (firData || []) as FirRow[];
             const employeeCodes = [...new Set(
-                firData
-                    .map((row: any) => row.employee_master?.employee_code)
-                    .filter(Boolean)
+                rows
+                    .map((row) => row.employee_master?.employee_code)
+                    .filter((code): code is string => Boolean(code))
             )];
 
             // Single batch query for profiles (instead of separate query)
@@ -50,15 +84,15 @@ class ReportService {
                 .in('employee_code', employeeCodes);
 
             // Create a map of employee_code -> Profile Link
-            const profileMap = new Map<string, any>();
+            const profileMap = new Map<string, ProfileRow>();
             if (profiles) {
-                profiles.forEach(p => {
+                profiles.forEach((p: ProfileRow) => {
                     if (p.employee_code) profileMap.set(p.employee_code, p);
                 });
             }
 
             // Map Supabase data to Report interface
-            const reports: Report[] = firData.map((row: any) => {
+            const reports: Report[] = rows.map((row) => {
                 const employeeMaster = row.employee_master;
                 const employeeCode = employeeMaster?.employee_code;
                 const linkedProfile = employeeCode ? profileMap.get(employeeCode) : null;
@@ -85,10 +119,7 @@ class ReportService {
                 }
 
                 // Map attachments (ensure it's an array)
-                let attachments: Attachment[] = [];
-                if (Array.isArray(row.attachments)) {
-                    attachments = row.attachments;
-                }
+                const attachments: Attachment[] = Array.isArray(row.attachments) ? row.attachments : [];
 
                 // Use Profile UUID if linked, otherwise fallback to ID from row. 
                 // Ideally we should have a reliable way to get the assigned User.
@@ -200,7 +231,7 @@ class ReportService {
 
     // Stage 3: Super Admin Review
     async adminReview(id: string, decision: 'CONFIRM' | 'SEND_BACK', notes: string, user: User): Promise<void> {
-        let updateData: any = {};
+        let updateData: Record<string, unknown> = {};
 
         if (decision === 'CONFIRM') {
             updateData = {

@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -41,7 +41,7 @@ export function TaskList({ tasks, onEdit, onRefresh }: TaskListProps) {
         }
     };
 
-    const getPriorityColor = (priority: string) => {
+    const getPriorityColor = (priority: string): BadgeProps["variant"] => {
         switch (priority) {
             case "high": return "destructive";
             case "medium": return "default"; // or secondary
@@ -98,7 +98,7 @@ export function TaskList({ tasks, onEdit, onRefresh }: TaskListProps) {
                                 </TableCell>
                                 <TableCell>{getStatusBadge(task.status)}</TableCell>
                                 <TableCell>
-                                    <Badge variant={getPriorityColor(task.priority) as any}>
+                                    <Badge variant={getPriorityColor(task.priority)}>
                                         {task.priority}
                                     </Badge>
                                 </TableCell>

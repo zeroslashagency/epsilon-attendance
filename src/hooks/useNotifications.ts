@@ -19,6 +19,11 @@ type DeviceNotificationRow = {
 };
 
 type NotificationSource = 'notifications' | 'device_notifications';
+type NotificationMetadata = {
+  source?: NotificationSource;
+  rawId?: string | number;
+  [key: string]: unknown;
+};
 
 const REFRESH_DEBOUNCE_MS = 500;
 const TOAST_BATCH_WINDOW_MS = 800;
@@ -53,10 +58,11 @@ export function useNotifications() {
   }, []);
 
   useEffect(() => {
+    const toastQueue = toastQueueRef.current;
     return () => {
-      if (toastQueueRef.current.timer) {
-        clearTimeout(toastQueueRef.current.timer);
-        toastQueueRef.current.timer = null;
+      if (toastQueue.timer) {
+        clearTimeout(toastQueue.timer);
+        toastQueue.timer = null;
       }
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
@@ -65,15 +71,15 @@ export function useNotifications() {
     };
   }, []);
 
-  function mapDeviceNotificationType(type: string, priority: string): NotificationType {
+  const mapDeviceNotificationType = useCallback((type: string, priority: string): NotificationType => {
     if (priority === 'urgent') return 'error';
     if (priority === 'high') return 'warning';
     if (type === 'alert' || type === 'policy') return 'warning';
     if (type === 'broadcast') return 'info';
     return 'info';
-  }
+  }, []);
 
-  function mapDeviceNotification(row: DeviceNotificationRow): Notification {
+  const mapDeviceNotification = useCallback((row: DeviceNotificationRow): Notification => {
     return {
       id: `device:${row.id}`,
       user_id: row.employee_code,
@@ -84,18 +90,20 @@ export function useNotifications() {
       metadata: { source: 'device_notifications', rawId: row.id },
       created_at: row.sent_at || row.created_at || new Date().toISOString(),
     };
-  }
+  }, [mapDeviceNotificationType]);
 
-  function mapAppNotification(row: Notification): Notification {
+  const mapAppNotification = useCallback((row: Notification): Notification => {
     return {
       ...row,
       metadata: { ...(row.metadata || {}), source: 'notifications', rawId: row.id },
     };
-  }
+  }, []);
 
-  function isMissingTableError(error: any): boolean {
-    const message = (error?.message || '').toLowerCase();
-    return error?.code === '42P01' || message.includes('does not exist') || message.includes('undefined table');
+  function isMissingTableError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') return false;
+    const maybeError = error as { message?: string; code?: string };
+    const message = (maybeError.message || '').toLowerCase();
+    return maybeError.code === '42P01' || message.includes('does not exist') || message.includes('undefined table');
   }
 
   function sortByNewest(items: Notification[]): Notification[] {
@@ -156,7 +164,7 @@ export function useNotifications() {
     } finally {
       setLoading(false);
     }
-  }, [user, employeeCode]);
+  }, [user, employeeCode, mapAppNotification, mapDeviceNotification]);
 
   // Subscribe to real-time changes
   useEffect(() => {
@@ -301,13 +309,14 @@ export function useNotifications() {
     return () => {
       channels.forEach((channel) => supabase.removeChannel(channel));
     };
-  }, [user, employeeCode, sources, scheduleRefresh, handleIncoming]);
+  }, [user, employeeCode, sources, scheduleRefresh, handleIncoming, mapAppNotification, mapDeviceNotification]);
 
   const markAsRead = async (id: string) => {
     try {
       const target = notifications.find(n => n.id === id);
-      const source = (target?.metadata as any)?.source as NotificationSource | undefined;
-      const rawId = (target?.metadata as any)?.rawId ?? id;
+      const metadata = (target?.metadata ?? {}) as NotificationMetadata;
+      const source = metadata.source;
+      const rawId = metadata.rawId ?? id;
 
       if (source === 'device_notifications') {
         const { error } = await supabase

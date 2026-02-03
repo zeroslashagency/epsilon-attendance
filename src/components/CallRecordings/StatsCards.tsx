@@ -5,22 +5,38 @@ import { Phone, PhoneIncoming, PhoneOutgoing, PhoneMissed } from 'lucide-react';
 
 interface StatsCardsProps {
     recordings: CallRecording[];
+    stats?: {
+        total: number;
+        today: number;
+        recorded: number;
+        missed: number;
+        timezone?: string;
+    } | null;
 }
 
-export function StatsCards({ recordings }: StatsCardsProps) {
-    const total = recordings.length;
+export function StatsCards({ recordings, stats }: StatsCardsProps) {
+    const total = stats?.total ?? recordings.length;
 
-    const today = recordings.filter((rec) => {
-        const recDate = new Date(rec.created_at);
-        const todayDate = new Date();
-        return recDate.toDateString() === todayDate.toDateString();
+    const isSameLocalDay = (date: Date, compare: Date) =>
+        date.getFullYear() === compare.getFullYear() &&
+        date.getMonth() === compare.getMonth() &&
+        date.getDate() === compare.getDate();
+
+    const today = stats?.today ?? recordings.filter((rec) => {
+        const base = rec.start_time || rec.created_at;
+        if (!base) return false;
+        const recDate = new Date(base);
+        if (Number.isNaN(recDate.getTime())) return false;
+        return isSameLocalDay(recDate, new Date());
     }).length;
 
-    const recorded = recordings.filter((rec) => rec.file_url !== null).length;
+    const recorded = stats?.recorded ?? recordings.filter((rec) => rec.file_url !== null).length;
 
-    const missed = recordings.filter((rec) => rec.call_type === 'missed').length;
+    const missed = stats?.missed ?? recordings.filter((rec) => rec.call_type === 'missed').length;
 
-    const stats = [
+    const recordedPercent = total > 0 ? Math.round((recorded / total) * 100) : 0;
+
+    const cards = [
         {
             label: 'Total Calls',
             value: total,
@@ -45,7 +61,7 @@ export function StatsCards({ recordings }: StatsCardsProps) {
             icon: PhoneOutgoing,
             color: 'text-orange-500',
             bg: 'bg-orange-500/10',
-            change: '85% of total calls',
+            change: `${recordedPercent}% of total calls`,
             trend: 'neutral'
         },
         {
@@ -61,7 +77,7 @@ export function StatsCards({ recordings }: StatsCardsProps) {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {stats.map((stat) => {
+            {cards.map((stat) => {
                 const Icon = stat.icon;
                 return (
                     <div

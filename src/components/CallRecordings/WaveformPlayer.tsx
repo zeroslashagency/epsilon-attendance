@@ -45,7 +45,7 @@ export function WaveformPlayer({
             audio.pause();
             audio.src = '';
         };
-    }, [fileUrl]); // Re-create if URL changes
+    }, [fileUrl, onPause]); // Re-create if URL changes or handler updates
 
     // Handle active state changes controlled by parent
     useEffect(() => {

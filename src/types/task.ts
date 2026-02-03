@@ -11,7 +11,7 @@ export interface Task {
     created_at: string;
     updated_at: string;
     created_by: string; // User ID
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 
     // Joined fields (optional)
     creator_name?: string;

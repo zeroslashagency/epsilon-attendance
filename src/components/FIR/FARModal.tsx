@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { CheckCircle, XCircle, Loader2, Camera, Paperclip, Mic, ChevronRight, X } from 'lucide-react';
 import { AudioRecorder } from './AudioRecorder';
@@ -51,15 +51,7 @@ export function FARModal({ isOpen, onClose, type, onReportSubmitted, currentUser
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [uploading, setUploading] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            fetchEmployees();
-            fetchCategories();
-            resetForm();
-        }
-    }, [isOpen, type]);
-
-    const resetForm = () => {
+    const resetForm = useCallback(() => {
         setStep('SELECT_EMPLOYEE');
         setSelectedEmployeeId('');
         setTitle('');
@@ -67,9 +59,9 @@ export function FARModal({ isOpen, onClose, type, onReportSubmitted, currentUser
         setAttachments([]);
         setMessage(null);
         setCategory(''); // Will be set after categories load
-    };
+    }, []);
 
-    const fetchEmployees = async () => {
+    const fetchEmployees = useCallback(async () => {
         setLoadingEmployees(true);
         const { data, error } = await supabase
             .from('employee_master')
@@ -83,9 +75,9 @@ export function FARModal({ isOpen, onClose, type, onReportSubmitted, currentUser
             setEmployees(data || []);
         }
         setLoadingEmployees(false);
-    };
+    }, []);
 
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         const { data, error } = await supabase
             .from('report_categories')
             .select('*')
@@ -103,7 +95,15 @@ export function FARModal({ isOpen, onClose, type, onReportSubmitted, currentUser
                 }
             }
         }
-    };
+    }, [type]);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchEmployees();
+            fetchCategories();
+            resetForm();
+        }
+    }, [isOpen, fetchEmployees, fetchCategories, resetForm]);
 
     const handleEmployeeSelect = (empId: string) => {
         setSelectedEmployeeId(empId);
@@ -175,7 +175,7 @@ export function FARModal({ isOpen, onClose, type, onReportSubmitted, currentUser
         }
     };
 
-    const handleSubmit = async (e?: any) => {
+    const handleSubmit = async (e?: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
         if (e && e.preventDefault) e.preventDefault();
         if (!type || !selectedEmployeeId) return;
 

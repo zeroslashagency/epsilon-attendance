@@ -10,11 +10,18 @@ import {
     Phone,
     Search,
     ArrowUpDown,
-    Loader2
+    Loader2,
+    Eye
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { WaveformPlayer } from './WaveformPlayer';
 import { getCityFromCoordinates } from '@/utils/geocoding';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 
 interface CallLogsTableProps {
     recordings: CallRecording[];
@@ -23,7 +30,9 @@ interface CallLogsTableProps {
 export function CallLogsTable({ recordings }: CallLogsTableProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState<'date' | 'duration'>('date');
+    const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'all'>('today');
     const [locationNames, setLocationNames] = useState<Record<string, string>>({});
+    const [previewRecord, setPreviewRecord] = useState<CallRecording | null>(null);
 
     // Auto-Contact Resolution: Build a map of PhoneNumber -> Name from all records
     const contactMap = recordings.reduce((acc, rec) => {
@@ -32,6 +41,11 @@ export function CallLogsTable({ recordings }: CallLogsTableProps) {
         }
         return acc;
     }, {} as Record<string, string>);
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const startOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
     const filteredRecordings = recordings
         .filter((rec) => {
@@ -44,25 +58,41 @@ export function CallLogsTable({ recordings }: CallLogsTableProps) {
                 false
             );
         })
+        .filter((rec) => {
+            if (dateFilter === 'all') return true;
+            const base = rec.start_time || rec.created_at;
+            if (!base) return false;
+            const recDate = new Date(base);
+            if (Number.isNaN(recDate.getTime())) return false;
+            if (dateFilter === 'today') {
+                return recDate >= startOfToday && recDate < startOfTomorrow;
+            }
+            return recDate >= startOfYesterday && recDate < startOfToday;
+        })
         // deduplicate by id just in case
         .filter((v, i, a) => a.findIndex(t => t.id === v.id) === i)
         .sort((a, b) => {
+            const timeA = new Date(a.start_time || a.created_at).getTime();
+            const timeB = new Date(b.start_time || b.created_at).getTime();
+            const safeTimeA = Number.isFinite(timeA) ? timeA : 0;
+            const safeTimeB = Number.isFinite(timeB) ? timeB : 0;
             if (sortBy === 'date') {
-                const timeA = new Date(a.start_time).getTime();
-                const timeB = new Date(b.start_time).getTime();
                 const now = Date.now();
 
                 // Push future dates (likely timezone bugs) to the bottom
                 // Use a 5-minute buffer to account for slight clock skews
-                const isFutureA = timeA > (now + 300000);
-                const isFutureB = timeB > (now + 300000);
+                const isFutureA = safeTimeA > (now + 300000);
+                const isFutureB = safeTimeB > (now + 300000);
 
                 if (isFutureA && !isFutureB) return 1;
                 if (!isFutureA && isFutureB) return -1;
 
-                return timeB - timeA;
+                return safeTimeB - safeTimeA;
             }
-            return b.duration_seconds - a.duration_seconds;
+            const durationA = a.duration_seconds ?? 0;
+            const durationB = b.duration_seconds ?? 0;
+            if (durationB !== durationA) return durationB - durationA;
+            return safeTimeB - safeTimeA;
         });
 
     // Fetch location names for visible rows
@@ -147,6 +177,79 @@ export function CallLogsTable({ recordings }: CallLogsTableProps) {
 
     return (
         <div className="bg-card dark:bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+            <Dialog
+                open={previewRecord !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setPreviewRecord(null);
+                    }
+                }}
+            >
+                {previewRecord && (
+                    <DialogContent className="sm:max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>Call Log Preview</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div>
+                                <div className="text-lg font-semibold text-foreground">
+                                    {previewRecord.contact_name && previewRecord.contact_name !== 'Unknown'
+                                        ? previewRecord.contact_name
+                                        : previewRecord.phone_number}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                    {previewRecord.contact_name ? previewRecord.phone_number : 'Unknown Name'}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <div className="text-xs uppercase text-muted-foreground">Status</div>
+                                    <div>{previewRecord.call_type ?? (previewRecord.file_url ? 'recorded' : 'answered')}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs uppercase text-muted-foreground">Duration</div>
+                                    <div>{formatDuration(previewRecord.duration_seconds ?? 0)}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs uppercase text-muted-foreground">Time</div>
+                                    <div>{formatDistanceToNow(new Date(previewRecord.start_time), { addSuffix: true })}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs uppercase text-muted-foreground">Direction</div>
+                                    <div>{previewRecord.direction ?? '-'}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs uppercase text-muted-foreground">Location</div>
+                                    <div>{locationNames[previewRecord.id] ?? 'Unknown'}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs uppercase text-muted-foreground">SIM</div>
+                                    <div>{previewRecord.sim_number ?? '-'}</div>
+                                </div>
+                            </div>
+                            {previewRecord.file_url && (
+                                <div className="flex items-center gap-3">
+                                    <audio
+                                        controls
+                                        src={previewRecord.file_url}
+                                        className="w-full"
+                                    />
+                                    <a
+                                        href={previewRecord.file_url}
+                                        download={`recording-${previewRecord.id}.m4a`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-2 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground"
+                                        title="Download"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </DialogContent>
+                )}
+            </Dialog>
             {/* Header */}
             <div className="p-6 border-b border-border">
                 <div className="flex items-center justify-between mb-4">
@@ -174,6 +277,28 @@ export function CallLogsTable({ recordings }: CallLogsTableProps) {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-input rounded-lg bg-background text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                     />
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Date
+                    </span>
+                    {([
+                        { id: 'today', label: 'Today' },
+                        { id: 'yesterday', label: 'Previous Day' },
+                        { id: 'all', label: 'All' },
+                    ] as const).map((option) => (
+                        <button
+                            key={option.id}
+                            onClick={() => setDateFilter(option.id)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                                dateFilter === option.id
+                                    ? 'bg-primary/10 text-primary border-primary/30'
+                                    : 'bg-background text-muted-foreground border-border hover:bg-muted/40'
+                            }`}
+                        >
+                            {option.label}
+                        </button>
+                    ))}
                 </div>
             </div>
 
@@ -299,6 +424,18 @@ export function CallLogsTable({ recordings }: CallLogsTableProps) {
                                             )}
 
                                             <div className="flex items-center gap-2">
+                                                <button
+                                                    className="text-muted-foreground hover:text-foreground p-2 hover:bg-muted rounded-full transition-colors"
+                                                    title="Preview call log"
+                                                    onClick={() => {
+                                                        audioElement?.pause();
+                                                        setPlayingId(null);
+                                                        setAudioElement(null);
+                                                        setPreviewRecord(recording);
+                                                    }}
+                                                >
+                                                    <Eye className="w-5 h-5" />
+                                                </button>
                                                 {recording.file_url && (
                                                     <a
                                                         href={recording.file_url}

@@ -20,6 +20,22 @@ type BluetoothSummary = {
   bluetoothDevices: number;
 } | null;
 
+type BluetoothScanDevice = {
+  name?: string;
+  type?: string;
+  address?: string;
+  mac?: string;
+  connected?: boolean;
+  battery?: number;
+  battery_level?: number;
+};
+
+type BluetoothScanMetadata = {
+  devices?: BluetoothScanDevice[];
+  enabled?: boolean;
+  scanning?: boolean;
+};
+
 interface BluetoothPanelProps {
   summary: BluetoothSummary;
   bluetoothLogs: BluetoothLog[];
@@ -32,12 +48,14 @@ function getLatestBluetoothScan(deviceEvents: DeviceEvent[]): DeviceEvent | unde
 }
 
 function getBluetoothEnabled(latestScan?: DeviceEvent): boolean {
-  return latestScan?.metadata?.enabled ?? true;
+  const metadata = latestScan?.metadata as BluetoothScanMetadata | undefined;
+  return metadata?.enabled ?? true;
 }
 
 function normalizeBluetoothDevices(latestScan?: DeviceEvent, bluetoothLogs: BluetoothLog[] = []): BluetoothDevice[] {
-  if (latestScan?.metadata?.devices?.length) {
-    return latestScan.metadata.devices.map((device: any) => ({
+  const metadata = latestScan?.metadata as BluetoothScanMetadata | undefined;
+  if (metadata?.devices?.length) {
+    return metadata.devices.map((device) => ({
       name: device.name || "Unknown Device",
       type: device.type,
       mac: device.address || device.mac,
@@ -103,7 +121,8 @@ export function BluetoothPanel({ summary, bluetoothLogs, deviceEvents, isLoading
     const start = (historyPage - 1) * historyPageSize;
     return filteredHistory.slice(start, start + historyPageSize);
   }, [filteredHistory, historyPage, historyPageSize]);
-  const scanStatus = latestScan?.metadata?.scanning ? "Scanning" : "Idle";
+  const latestScanMetadata = latestScan?.metadata as BluetoothScanMetadata | undefined;
+  const scanStatus = latestScanMetadata?.scanning ? "Scanning" : "Idle";
 
   useEffect(() => {
     setHistoryPage(1);

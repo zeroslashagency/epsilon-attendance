@@ -51,11 +51,12 @@ function getEventIcon(category: EventCategory) {
   }
 }
 
-function renderMetadata(metadata: any): string {
-  if (!metadata) return "--";
+function renderMetadata(metadata: unknown): string {
+  if (metadata == null) return "--";
   if (typeof metadata === "string") return metadata;
+  if (typeof metadata !== "object") return String(metadata);
   try {
-    const entries = Object.entries(metadata).slice(0, 4);
+    const entries = Object.entries(metadata as Record<string, unknown>).slice(0, 4);
     return entries.map(([key, value]) => `${key}: ${String(value)}`).join(" · ");
   } catch {
     return "--";

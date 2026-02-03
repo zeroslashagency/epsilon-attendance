@@ -191,7 +191,7 @@ export function useAttendanceData({
               });
             }, 100);
           } catch (err) {
-
+            console.debug('Notification display failed:', err);
           }
         }
       }

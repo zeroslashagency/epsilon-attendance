@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { reportService } from '@/services/fir/reportService';
 import { Report } from '@/services/fir/types';
@@ -10,11 +10,7 @@ const HistoryPage: React.FC = () => {
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        loadReports();
-    }, [user]);
-
-    const loadReports = async () => {
+    const loadReports = useCallback(async () => {
         if (!user) return;
         setLoading(true);
         try {
@@ -25,7 +21,11 @@ const HistoryPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
+
+    useEffect(() => {
+        loadReports();
+    }, [loadReports]);
 
     if (loading) {
         return (

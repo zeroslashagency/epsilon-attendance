@@ -149,6 +149,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               requireInteraction: false
             });
           } catch (err) {
+            console.debug('Test notification failed:', err);
           }
         }, 500);
 

@@ -9,8 +9,33 @@ import {
 } from '@/core/domain/repositories/IEmployeeRepository';
 import { supabase } from '@/lib/supabase';
 
+type EmployeeRow = {
+    id: string;
+    employee_code: string;
+    full_name: string;
+    email: string;
+    department: string | null;
+    role: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+};
+
 export class SupabaseEmployeeRepository implements IEmployeeRepository {
     private tableName = 'employee_master';
+    private static mapToEmployee(data: EmployeeRow): Employee {
+        return {
+            id: data.id,
+            employeeCode: data.employee_code,
+            fullName: data.full_name,
+            email: data.email,
+            department: data.department,
+            role: data.role,
+            isActive: data.is_active,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+        };
+    }
 
     async getById(id: string): Promise<Employee | null> {
         const { data, error } = await supabase
@@ -20,7 +45,7 @@ export class SupabaseEmployeeRepository implements IEmployeeRepository {
             .single();
 
         if (error || !data) return null;
-        return this.mapToEmployee(data);
+        return SupabaseEmployeeRepository.mapToEmployee(data as EmployeeRow);
     }
 
     async getByEmployeeCode(code: string): Promise<Employee | null> {
@@ -53,7 +78,7 @@ export class SupabaseEmployeeRepository implements IEmployeeRepository {
         const { data, error } = await query.order('full_name', { ascending: true });
 
         if (error || !data) return [];
-        return data.map(this.mapToEmployee);
+        return (data as EmployeeRow[]).map(SupabaseEmployeeRepository.mapToEmployee);
     }
 
     async create(employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>): Promise<Employee> {
@@ -71,7 +96,7 @@ export class SupabaseEmployeeRepository implements IEmployeeRepository {
             .single();
 
         if (error) throw new Error(`Failed to create employee: ${error.message}`);
-        return this.mapToEmployee(data);
+        return SupabaseEmployeeRepository.mapToEmployee(data as EmployeeRow);
     }
 
     async update(id: string, employee: Partial<Employee>): Promise<Employee> {
@@ -89,7 +114,7 @@ export class SupabaseEmployeeRepository implements IEmployeeRepository {
             .single();
 
         if (error) throw new Error(`Failed to update employee: ${error.message}`);
-        return this.mapToEmployee(data);
+        return SupabaseEmployeeRepository.mapToEmployee(data as EmployeeRow);
     }
 
     async delete(id: string): Promise<void> {
@@ -101,17 +126,4 @@ export class SupabaseEmployeeRepository implements IEmployeeRepository {
         if (error) throw new Error(`Failed to delete employee: ${error.message}`);
     }
 
-    private mapToEmployee(data: any): Employee {
-        return {
-            id: data.id,
-            employeeCode: data.employee_code,
-            fullName: data.full_name,
-            email: data.email,
-            department: data.department,
-            role: data.role,
-            isActive: data.is_active,
-            createdAt: data.created_at,
-            updatedAt: data.updated_at,
-        };
-    }
 }
